@@ -1,0 +1,25 @@
+{
+  "nombre": "Producto de Ejemplo 1",
+  "descripcion": "Este es un producto de ejemplo para probar la funcionalidad de la tienda.",
+  "precio": 29.99,
+  "stock": 10,
+  "categorias": ["Ejemplo", "Prueba"],
+  "caracteristicas": [
+    "Característica 1 del producto",
+    "Característica 2 del producto",
+    "Característica 3 del producto"
+  ],
+  "destacado": true,
+  "imagenes": [
+    {
+      "url": "/images/productos/producto-ejemplo-1.jpg",
+      "principal": true,
+      "tipo": "local"
+    },
+    {
+      "url": "/images/productos/producto-ejemplo-2.jpg",
+      "principal": false,
+      "tipo": "local"
+    }
+  ]
+}

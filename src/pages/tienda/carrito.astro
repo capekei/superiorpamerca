@@ -1,0 +1,455 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`Carrito de Compras | ${SITE_TITLE}`} description="Revisa los productos en tu carrito de compras" />
+    <link rel="stylesheet" href="/styles/main.css" />
+	</head>
+	<body>
+		<Header />
+		<main>
+      <div class="carrito-section">
+        <div class="container">
+          <h1 class="section-title">Tu Carrito de Compras</h1>
+          
+          <div class="carrito-container">
+            <!-- Items del carrito -->
+            <div class="carrito-items" id="carrito-items">
+              <!-- El contenido del carrito se cargará dinámicamente con JavaScript -->
+              <div class="carrito-empty">
+                <p>Tu carrito está vacío</p>
+                <a href="/tienda" class="btn btn-primary">Ir a la tienda</a>
+              </div>
+            </div>
+            
+            <!-- Panel Resumen -->
+            <aside class="summary-panel">
+              <h2>Resumen de Compra</h2>
+              
+              <div class="summary-item">
+                <span>Subtotal</span>
+                <span id="subtotal">$0.00</span>
+              </div>
+              
+              <div class="summary-item">
+                <span>Envío</span>
+                <span id="envio">$0.00</span>
+              </div>
+              
+              <div class="summary-item total">
+                <span>Total</span>
+                <span id="total">$0.00</span>
+              </div>
+              
+              <button class="btn-checkout" id="btn-checkout" disabled>
+                Finalizar Compra
+              </button>
+              
+              <a href="/tienda" class="btn btn-outline btn-block mt-2">
+                Seguir Comprando
+              </a>
+            </aside>
+          </div>
+        </div>
+      </div>
+		</main>
+		<Footer />
+    
+    <script>
+      // Ejemplo básico de cómo funcionaría el carrito
+      // En un proyecto real, usaría Nanostores o similar para gestión de estado
+      
+      document.addEventListener('DOMContentLoaded', () => {
+        const carritoItems = document.getElementById('carrito-items');
+        const subtotalElement = document.getElementById('subtotal');
+        const envioElement = document.getElementById('envio');
+        const totalElement = document.getElementById('total');
+        const btnCheckout = document.getElementById('btn-checkout');
+        
+        // Simulación de carrito (en un proyecto real, esto vendría de localStorage o estado global)
+        const carrito = [
+          // Ejemplo de item en carrito
+          // { id: 'producto-1', nombre: 'Producto 1', precio: 29.99, cantidad: 2, imagen: '/img/productos/producto-1.jpg' }
+        ];
+        
+        // Renderizar items del carrito
+        function renderizarCarrito() {
+          if (carrito.length === 0) {
+            carritoItems.innerHTML = `
+              <div class="carrito-empty">
+                <p>Tu carrito está vacío</p>
+                <a href="/tienda" class="btn btn-primary">Ir a la tienda</a>
+              </div>
+            `;
+            btnCheckout.disabled = true;
+            return;
+          }
+          
+          btnCheckout.disabled = false;
+          
+          let html = '';
+          let subtotal = 0;
+          
+          carrito.forEach(item => {
+            const itemTotal = item.precio * item.cantidad;
+            subtotal += itemTotal;
+            
+            html += `
+              <article class="neumorphic-card" data-id="${item.id}">
+                <div class="item-image">
+                  <img src="${item.imagen}" alt="${item.nombre}" />
+                </div>
+                <div class="item-info">
+                  <h3>${item.nombre}</h3>
+                  <p class="price">$${item.precio.toFixed(2)}</p>
+                  <div class="quantity-controls">
+                    <button class="btn-quantity btn-menos">−</button>
+                    <span>${item.cantidad}</span>
+                    <button class="btn-quantity btn-mas">+</button>
+                  </div>
+                </div>
+                <div class="item-total">
+                  $${itemTotal.toFixed(2)}
+                </div>
+                <button class="btn-eliminar">×</button>
+              </article>
+            `;
+          });
+          
+          carritoItems.innerHTML = html;
+          
+          // Calcular totales
+          const envio = subtotal > 0 ? 5.99 : 0;
+          const total = subtotal + envio;
+          
+          subtotalElement.textContent = `$${subtotal.toFixed(2)}`;
+          envioElement.textContent = `$${envio.toFixed(2)}`;
+          totalElement.textContent = `$${total.toFixed(2)}`;
+          
+          // Agregar event listeners a botones
+          document.querySelectorAll('.btn-menos').forEach(btn => {
+            btn.addEventListener('click', decrementarCantidad);
+          });
+          
+          document.querySelectorAll('.btn-mas').forEach(btn => {
+            btn.addEventListener('click', incrementarCantidad);
+          });
+          
+          document.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', eliminarItem);
+          });
+        }
+        
+        // Funciones para manipular el carrito
+        function decrementarCantidad(e) {
+          const itemId = e.target.closest('.carrito-item').dataset.id;
+          const itemIndex = carrito.findIndex(item => item.id === itemId);
+          
+          if (itemIndex !== -1) {
+            if (carrito[itemIndex].cantidad > 1) {
+              carrito[itemIndex].cantidad--;
+            } else {
+              carrito.splice(itemIndex, 1);
+            }
+            renderizarCarrito();
+          }
+        }
+        
+        function incrementarCantidad(e) {
+          const itemId = e.target.closest('.carrito-item').dataset.id;
+          const itemIndex = carrito.findIndex(item => item.id === itemId);
+          
+          if (itemIndex !== -1) {
+            carrito[itemIndex].cantidad++;
+            renderizarCarrito();
+          }
+        }
+        
+        function eliminarItem(e) {
+          const itemId = e.target.closest('.carrito-item').dataset.id;
+          const itemIndex = carrito.findIndex(item => item.id === itemId);
+          
+          if (itemIndex !== -1) {
+            carrito.splice(itemIndex, 1);
+            renderizarCarrito();
+          }
+        }
+        
+        // Inicializar carrito
+        renderizarCarrito();
+        
+        // Event listener para checkout
+        btnCheckout.addEventListener('click', () => {
+          alert('Redirigiendo al proceso de pago...');
+          // Aquí iría la lógica para redirigir al checkout
+        });
+      });
+    </script>
+	</body>
+</html>
+
+<style>
+  .carrito-section {
+    /* Utilizamos clases de Tailwind directamente en el HTML */
+  }
+      
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 0;
+        width: 60px;
+        height: 4px;
+        background-color: var(--color-accent);
+        border-radius: 2px;
+      }
+    }
+  }
+  
+  .carrito-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: 2fr 1fr;
+    }
+  }
+  
+  .carrito-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    
+    .carrito-empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      background: var(--color-background);
+      border-radius: 20px;
+      box-shadow: 
+        9px 9px 18px rgba(30, 42, 60, 0.1),
+        -9px -9px 18px rgba(255, 255, 255, 0.8);
+      
+      p {
+        margin-bottom: 1.5rem;
+        color: var(--color-text-secondary);
+        font-size: 1.1rem;
+      }
+    }
+  }
+  
+  .neumorphic-card {
+    background: var(--color-background);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 
+      9px 9px 18px rgba(30, 42, 60, 0.1),
+      -9px -9px 18px rgba(255, 255, 255, 0.8);
+    transition: transform 0.3s ease;
+    display: grid;
+    grid-template-columns: 100px 1fr auto auto;
+    gap: 1.5rem;
+    align-items: center;
+
+    &:hover {
+      transform: translateY(-3px);
+    }
+    
+    .item-image {
+      background: var(--color-secondary);
+      border-radius: 15px;
+      overflow: hidden;
+      width: 100px;
+      height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .item-info {
+      h3 {
+        color: var(--color-text);
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .price {
+        color: var(--color-accent);
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+      }
+      
+      .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        
+        span {
+          min-width: 2rem;
+          text-align: center;
+          font-weight: 600;
+          color: var(--color-text);
+        }
+      }
+    }
+    
+    .item-total {
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: var(--color-primary);
+    }
+    
+    .btn-eliminar {
+      background: none;
+      border: none;
+      color: var(--color-text-secondary);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0.25rem;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        color: var(--color-accent);
+        transform: scale(1.1);
+      }
+      
+      &:focus {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+    }
+  }
+  
+  .btn-quantity {
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: var(--color-accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 4px 12px rgba(212, 44, 23, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    &:focus {
+      outline: 2px solid var(--color-accent);
+      outline-offset: 2px;
+    }
+  }
+
+  .summary-panel {
+    background: var(--color-secondary);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 
+      5px 5px 15px rgba(30, 42, 60, 0.1),
+      -5px -5px 15px rgba(255, 255, 255, 0.8);
+    align-self: start;
+
+    h2 {
+      color: var(--color-primary);
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--color-primary);
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      color: var(--color-text);
+      
+      &.total {
+        font-weight: bold;
+        font-size: 1.2rem;
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid var(--color-primary-light);
+      }
+    }
+    
+    .btn-checkout {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-top: 1.5rem;
+      background: var(--color-accent);
+      color: var(--color-stellar-light);
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        filter: brightness(1.1);
+        box-shadow: 0 4px 12px rgba(212, 44, 23, 0.3);
+        transform: translateY(-2px);
+      }
+      
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+      
+      &:focus {
+        outline: 2px solid var(--color-accent);
+        outline-offset: 2px;
+      }
+    }
+    
+    .btn-outline {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      margin-top: 0.75rem;
+      background: transparent;
+      color: var(--color-primary);
+      border: 2px solid var(--color-primary);
+      border-radius: 10px;
+      font-weight: 600;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        background: var(--color-primary);
+        color: var(--color-stellar-light);
+        transform: translateY(-2px);
+      }
+      
+      &:focus {
+        outline: 2px solid var(--color-primary);
+        outline-offset: 2px;
+      }
+    }
+  }
+</style>

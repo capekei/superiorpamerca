@@ -1,0 +1,102 @@
+---
+/**
+ * Componente para mostrar etiquetas "Próximamente" con posicionamiento correcto
+ * Evita superposiciones y problemas de layout
+ */
+
+interface Props {
+  text?: string;
+  position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right' | 'center';
+  size?: 'sm' | 'md' | 'lg';
+  color?: string;
+  backgroundColor?: string;
+  rotate?: boolean;
+  className?: string;
+}
+
+const {
+  text = "Próximamente",
+  position = "center",
+  size = "md",
+  color = "white",
+  backgroundColor = "#D42C17",
+  rotate = true,
+  className = ""
+} = Astro.props;
+
+// Determinar clases de posición
+const positionClasses = {
+  'top-left': 'top-2 left-2',
+  'top-right': 'top-2 right-2',
+  'bottom-left': 'bottom-2 left-2',
+  'bottom-right': 'bottom-2 right-2',
+  'center': 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'
+};
+
+// Determinar clases de tamaño con mejor manejo de espacio y overflow
+const sizeClasses = {
+  'sm': 'text-xs px-2 py-1 max-w-[100px] sm:max-w-[120px]',
+  'md': 'text-sm px-3 py-1.5 max-w-[120px] sm:max-w-[150px]',
+  'lg': 'text-base px-4 py-2 max-w-[140px] sm:max-w-[180px]'
+};
+
+// Construir clases con mejor manejo de overflow
+const badgeClasses = [
+  'coming-soon-badge',
+  'absolute',
+  positionClasses[position],
+  sizeClasses[size],
+  'font-medium',
+  'uppercase',
+  'tracking-wider',
+  'rounded-md',
+  'shadow-lg',
+  'z-10',
+  'text-center',
+  'truncate',
+  'overflow-hidden',
+  'text-ellipsis',
+  'whitespace-nowrap',
+  'flex',
+  'items-center',
+  'justify-center',
+  rotate ? 'transform -rotate-12' : '',
+  className
+].join(' ');
+
+// Estilo inline para colores personalizados
+const badgeStyle = `background-color: ${backgroundColor}; color: ${color};`;
+---
+
+<div class={badgeClasses} style={badgeStyle}>
+  {text}
+</div>
+
+<style>
+  .coming-soon-badge {
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    width: auto;
+    max-width: 100%;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Efecto hover opcional sin rotación que rompa el layout */
+  .coming-soon-badge:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Media queries para mejor comportamiento responsive */
+  @media (max-width: 640px) {
+    .coming-soon-badge {
+      font-size: 0.75rem;
+      padding: 0.25rem 0.5rem;
+    }
+  }
+</style>

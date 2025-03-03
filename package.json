@@ -21,13 +21,23 @@
     "typescript": "5.7.2"
   },
   "devDependencies": {
+    "@astrojs/tailwind": "^6.0.0",
     "@cloudflare/workers-types": "^4.20250204.0",
+    "autoprefixer": "^10.4.20",
+    "glob": "^11.0.1",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17",
     "wrangler": "3.107.3"
   },
   "scripts": {
     "astro": "astro",
+    "backup": "node scripts/backup-manager.mjs backup",
+    "backup:list": "node scripts/backup-manager.mjs list",
+    "backup:restore": "node scripts/backup-manager.mjs restore",
     "build": "astro build",
     "check": "astro build && tsc && wrangler deploy --dry-run",
+    "check-links": "node scripts/link-checker.js",
+    "cleanup-backups": "node scripts/cleanup-backups.mjs",
     "deploy": "astro build && wrangler deploy",
     "dev": "astro dev",
     "preview": "astro build && wrangler dev",

@@ -1,0 +1,18 @@
+{"timestamp":"2025-03-03T00:22:18.770Z","level":"info","action":"producto_creado","message":"Producto creado: dddd (producto-m7sbfib8)"}
+{"timestamp":"2025-03-03T00:22:18.801Z","level":"info","action":"imagen_guardada","message":"Imagen guardada para producto producto-m7sbfib8: /uploads/productos/producto-m7sbfib8/screenshot-2025-03-02-at-7-46-59-pm-1740961338800.png"}
+{"timestamp":"2025-03-03T00:22:18.801Z","level":"info","action":"imagenes_subidas","message":"1 imágenes subidas para el producto producto-m7sbfib8"}
+{"timestamp":"2025-03-03T00:24:40.113Z","level":"info","action":"producto_eliminado","message":"Producto eliminado: Producto de ejemplo (producto-ejemplo)"}
+{"timestamp":"2025-03-03T12:10:18.344Z","level":"info","action":"producto_eliminado","message":"Producto eliminado: dddd (producto-m7sbfib8)"}
+{"timestamp":"2025-03-03T12:11:00.588Z","level":"info","action":"producto_creado","message":"Producto creado: oiejoic (producto-m7t0qwcv)"}
+{"timestamp":"2025-03-03T12:12:02.045Z","level":"info","action":"producto_eliminado","message":"Producto eliminado: oiejoic (producto-m7t0qwcv)"}
+{"timestamp":"2025-03-03T15:34:07.898Z","level":"error","action":"ERROR","message":"Producto no encontrado: producto-ejemplo"}
+{"timestamp":"2025-03-03T15:34:07.902Z","level":"info","action":"INFO","message":"Producto recuperado dinámicamente: producto-ejemplo"}
+{"timestamp":"2025-03-03T15:34:12.933Z","level":"error","action":"ERROR","message":"Producto no encontrado: producto-ejemplo"}
+{"timestamp":"2025-03-03T15:34:12.934Z","level":"info","action":"INFO","message":"Producto recuperado dinámicamente: producto-ejemplo"}
+{"timestamp":"2025-03-03T15:34:32.385Z","level":"error","action":"ERROR","message":"Producto no encontrado: producto-ejemplo"}
+{"timestamp":"2025-03-03T15:34:32.388Z","level":"info","action":"INFO","message":"Producto recuperado dinámicamente: producto-ejemplo"}
+{"timestamp":"2025-03-03T15:36:55.172Z","level":"info","action":"producto_eliminado","message":"Producto eliminado: Producto de ejemplo (producto-ejemplo)"}
+{"timestamp":"2025-03-03T15:44:03.392Z","level":"error","action":"ERROR","message":"Producto no encontrado: producto-ejemplo-1"}
+{"timestamp":"2025-03-03T15:44:03.396Z","level":"warning","action":"WARNING","message":"Producto no encontrado: producto-ejemplo-1"}
+{"timestamp":"2025-03-03T16:46:54.511Z","level":"info","action":"imagen_url_registrada","message":"URL de imagen registrada para el producto producto-m7taksxh: https://imgur.com/k9TAwGl"}
+{"timestamp":"2025-03-03T16:48:09.171Z","level":"info","action":"imagen_url_registrada","message":"URL de imagen registrada para el producto producto-m7tan5iw: https://imgur.com/k9TAwGl"}

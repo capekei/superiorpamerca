@@ -1,0 +1,82 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import ProductCard from '../../components/ecommerce/ProductCard.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+
+// Datos de ejemplo para productos
+const productos = [
+  {
+    id: 1,
+    nombre: 'Producto 1',
+    precio: 29.99,
+    descripcion: 'Descripción del producto 1',
+    imagen: '/blog-placeholder-1.jpg'
+  },
+  {
+    id: 2,
+    nombre: 'Producto 2',
+    precio: 39.99,
+    descripcion: 'Descripción del producto 2',
+    imagen: '/blog-placeholder-2.jpg'
+  },
+  {
+    id: 3,
+    nombre: 'Producto 3',
+    precio: 49.99,
+    descripcion: 'Descripción del producto 3',
+    imagen: '/blog-placeholder-3.jpg'
+  },
+  {
+    id: 4,
+    nombre: 'Producto 4',
+    precio: 59.99,
+    descripcion: 'Descripción del producto 4',
+    imagen: '/blog-placeholder-4.jpg'
+  },
+  {
+    id: 5,
+    nombre: 'Producto 5',
+    precio: 69.99,
+    descripcion: 'Descripción del producto 5',
+    imagen: '/blog-placeholder-5.jpg'
+  },
+  {
+    id: 6,
+    nombre: 'Producto 6',
+    precio: 79.99,
+    descripcion: 'Descripción del producto 6',
+    imagen: '/blog-placeholder-about.jpg'
+  }
+];
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`Tienda (UnoCSS) | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+	</head>
+	<body class="bg-base-100 text-neutral">
+		<Header />
+		<main>
+      <div class="max-w-7xl mx-auto px-4">
+        <section class="py-12">
+          <h1 class="text-center text-4xl font-bold mb-12">Nuestra Tienda (UnoCSS)</h1>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {productos.map(producto => (
+              <ProductCard 
+                id={producto.id}
+                nombre={producto.nombre}
+                precio={producto.precio}
+                descripcion={producto.descripcion}
+                imagen={producto.imagen}
+              />
+            ))}
+          </div>
+        </section>
+      </div>
+		</main>
+		<Footer />
+	</body>
+</html> 

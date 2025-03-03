@@ -1,0 +1,384 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import OptimizedImage from '../../components/OptimizedImage.astro';
+import { getOptimizedImageUrl } from '../../utils/cloudflareImageUtils';
+
+// Ejemplos de diferentes configuraciones para OptimizedImage
+const ejemplos = [
+  {
+    titulo: "Imagen Local Básica",
+    descripcion: "Imagen local con configuración básica y carga perezosa",
+    config: {
+      src: "/uploads/ejemplo1.jpg",
+      alt: "Ejemplo de imagen local básica",
+      width: 800,
+      height: 600,
+      loading: "lazy"
+    }
+  },
+  {
+    titulo: "Imagen Remota Optimizada",
+    descripcion: "Imagen remota con optimización de Cloudflare",
+    config: {
+      src: "https://ejemplo.com/imagen-grande.jpg",
+      alt: "Ejemplo de imagen remota optimizada",
+      width: 1200,
+      height: 800,
+      loading: "lazy",
+      format: "webp",
+      quality: 80
+    }
+  },
+  {
+    titulo: "Imagen con Aspect Ratio Personalizado",
+    descripcion: "Imagen con relación de aspecto 16:9 y ajuste de objeto",
+    config: {
+      src: "/uploads/ejemplo-panoramico.jpg",
+      alt: "Ejemplo de imagen panorámica",
+      width: 1600,
+      height: 900,
+      aspectRatio: "16/9",
+      objectFit: "cover",
+      objectPosition: "center"
+    }
+  },
+  {
+    titulo: "Imagen con Placeholder",
+    descripcion: "Imagen con placeholder durante la carga",
+    config: {
+      src: "/uploads/ejemplo-alta-resolucion.jpg",
+      alt: "Ejemplo de imagen con placeholder",
+      width: 2000,
+      height: 1500,
+      usePlaceholder: true,
+      placeholderSize: 10
+    }
+  },
+  {
+    titulo: "Imagen con Tamaños Responsivos",
+    descripcion: "Imagen que se adapta a diferentes tamaños de pantalla",
+    config: {
+      src: "/uploads/ejemplo-responsivo.jpg",
+      alt: "Ejemplo de imagen responsiva",
+      width: 1200,
+      height: 800,
+      sizes: "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
+      breakpoints: [320, 640, 960, 1280, 1920]
+    }
+  },
+  {
+    titulo: "Imagen con Efecto al Pasar el Mouse",
+    descripcion: "Imagen con efecto de escala al pasar el mouse",
+    config: {
+      src: "/uploads/ejemplo-interactivo.jpg",
+      alt: "Ejemplo de imagen con efecto hover",
+      width: 800,
+      height: 600,
+      className: "transition-transform duration-300 hover:scale-105"
+    }
+  }
+];
+
+// Ejemplos de casos de uso específicos
+const casosDeUso = [
+  {
+    titulo: "Imagen de Producto",
+    descripcion: "Optimizada para mostrar productos con alta calidad y carga rápida",
+    config: {
+      src: "/uploads/producto-ejemplo.jpg",
+      alt: "Producto de ejemplo",
+      width: 800,
+      height: 800,
+      aspectRatio: "1/1",
+      objectFit: "contain",
+      background: "#f8f8f8",
+      format: "webp",
+      quality: 85
+    }
+  },
+  {
+    titulo: "Imagen de Banner",
+    descripcion: "Optimizada para banners de ancho completo con carga prioritaria",
+    config: {
+      src: "/uploads/banner-ejemplo.jpg",
+      alt: "Banner de ejemplo",
+      width: 1920,
+      height: 600,
+      aspectRatio: "16/5",
+      objectFit: "cover",
+      loading: "eager",
+      priority: true
+    }
+  },
+  {
+    titulo: "Imagen de Avatar",
+    descripcion: "Optimizada para avatares pequeños y redondos",
+    config: {
+      src: "/uploads/avatar-ejemplo.jpg",
+      alt: "Avatar de ejemplo",
+      width: 150,
+      height: 150,
+      aspectRatio: "1/1",
+      objectFit: "cover",
+      className: "rounded-full"
+    }
+  },
+  {
+    titulo: "Imagen de Fondo",
+    descripcion: "Optimizada para imágenes de fondo con superposición de texto",
+    config: {
+      src: "/uploads/fondo-ejemplo.jpg",
+      alt: "Fondo de ejemplo",
+      width: 1600,
+      height: 900,
+      aspectRatio: "16/9",
+      objectFit: "cover",
+      className: "opacity-50"
+    }
+  }
+];
+
+// Función para generar un ejemplo de URL optimizada
+function generarEjemploURL(src, opciones) {
+  try {
+    return getOptimizedImageUrl(src, opciones);
+  } catch (error) {
+    return `Error: ${error.message}`;
+  }
+}
+
+// Ejemplos de URLs optimizadas
+const ejemplosURL = [
+  {
+    titulo: "URL Básica",
+    src: "/uploads/ejemplo.jpg",
+    opciones: { width: 800, height: 600, format: "webp" },
+    descripcion: "URL optimizada básica con formato WebP"
+  },
+  {
+    titulo: "URL con Calidad Ajustada",
+    src: "/uploads/ejemplo-alta-calidad.jpg",
+    opciones: { width: 1200, height: 800, format: "webp", quality: 85 },
+    descripcion: "URL optimizada con calidad ajustada al 85%"
+  },
+  {
+    titulo: "URL con Recorte",
+    src: "/uploads/ejemplo-recorte.jpg",
+    opciones: { width: 400, height: 400, fit: "crop", position: "entropy" },
+    descripcion: "URL optimizada con recorte inteligente basado en entropía"
+  },
+  {
+    titulo: "URL con Filtros",
+    src: "/uploads/ejemplo-filtros.jpg",
+    opciones: { width: 800, height: 600, brightness: 1.1, contrast: 1.1, sharpen: 1 },
+    descripcion: "URL optimizada con filtros de brillo, contraste y nitidez"
+  }
+];
+---
+
+<Layout title="Ejemplos de Imágenes Optimizadas">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-[#1E2A3C] mb-8 text-center">Ejemplos de Imágenes Optimizadas</h1>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">1. Configuraciones Básicas</h2>
+      <p class="text-[#6c7983] mb-8">
+        Estos ejemplos muestran diferentes configuraciones del componente OptimizedImage.
+        Nota: Las imágenes de ejemplo pueden no existir en tu proyecto, reemplázalas con imágenes reales.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {ejemplos.map((ejemplo, index) => (
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="aspect-w-4 aspect-h-3 bg-[#EDEDED]">
+              <OptimizedImage 
+                src={ejemplo.config.src}
+                alt={ejemplo.config.alt}
+                width={ejemplo.config.width}
+                height={ejemplo.config.height}
+                aspectRatio={ejemplo.config.aspectRatio}
+                objectFit={ejemplo.config.objectFit}
+                objectPosition={ejemplo.config.objectPosition}
+                loading={ejemplo.config.loading}
+                format={ejemplo.config.format}
+                quality={ejemplo.config.quality}
+                usePlaceholder={ejemplo.config.usePlaceholder}
+                placeholderSize={ejemplo.config.placeholderSize}
+                sizes={ejemplo.config.sizes}
+                breakpoints={ejemplo.config.breakpoints}
+                background={ejemplo.config.background}
+                priority={ejemplo.config.priority}
+                class={ejemplo.config.className}
+                fallbackSrc="/uploads/fallback-image.jpg"
+              />
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-medium text-[#1E2A3C] mb-2">{ejemplo.titulo}</h3>
+              <p class="text-[#6c7983] text-sm mb-4">{ejemplo.descripcion}</p>
+              <div class="bg-[#f8f8f8] p-3 rounded text-xs font-mono overflow-x-auto">
+                <pre>{JSON.stringify(ejemplo.config, null, 2)}</pre>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">2. Casos de Uso Específicos</h2>
+      <p class="text-[#6c7983] mb-8">
+        Estos ejemplos muestran configuraciones optimizadas para casos de uso específicos.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {casosDeUso.map((caso, index) => (
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="aspect-w-16 aspect-h-9 bg-[#EDEDED]">
+              <OptimizedImage 
+                src={caso.config.src}
+                alt={caso.config.alt}
+                width={caso.config.width}
+                height={caso.config.height}
+                aspectRatio={caso.config.aspectRatio}
+                objectFit={caso.config.objectFit}
+                objectPosition={caso.config.objectPosition}
+                loading={caso.config.loading}
+                format={caso.config.format}
+                quality={caso.config.quality}
+                background={caso.config.background}
+                priority={caso.config.priority}
+                class={caso.config.className}
+                fallbackSrc="/uploads/fallback-image.jpg"
+              />
+            </div>
+            <div class="p-4">
+              <h3 class="text-lg font-medium text-[#1E2A3C] mb-2">{caso.titulo}</h3>
+              <p class="text-[#6c7983] text-sm mb-4">{caso.descripcion}</p>
+              <div class="bg-[#f8f8f8] p-3 rounded text-xs font-mono overflow-x-auto">
+                <pre>{JSON.stringify(caso.config, null, 2)}</pre>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">3. Ejemplos de URLs Optimizadas</h2>
+      <p class="text-[#6c7983] mb-8">
+        Estos ejemplos muestran cómo se generan las URLs optimizadas utilizando la función getOptimizedImageUrl.
+      </p>
+      
+      <div class="space-y-6">
+        {ejemplosURL.map((ejemplo, index) => (
+          <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="p-4">
+              <h3 class="text-lg font-medium text-[#1E2A3C] mb-2">{ejemplo.titulo}</h3>
+              <p class="text-[#6c7983] text-sm mb-4">{ejemplo.descripcion}</p>
+              
+              <div class="mb-4">
+                <h4 class="text-sm font-medium text-[#1E2A3C] mb-2">Imagen Original:</h4>
+                <code class="bg-[#f8f8f8] p-2 rounded text-xs block overflow-x-auto">{ejemplo.src}</code>
+              </div>
+              
+              <div class="mb-4">
+                <h4 class="text-sm font-medium text-[#1E2A3C] mb-2">Opciones:</h4>
+                <div class="bg-[#f8f8f8] p-3 rounded text-xs font-mono overflow-x-auto">
+                  <pre>{JSON.stringify(ejemplo.opciones, null, 2)}</pre>
+                </div>
+              </div>
+              
+              <div>
+                <h4 class="text-sm font-medium text-[#1E2A3C] mb-2">URL Resultante:</h4>
+                <code class="bg-[#f8f8f8] p-2 rounded text-xs block overflow-x-auto break-all">
+                  {generarEjemploURL(ejemplo.src, ejemplo.opciones)}
+                </code>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">4. Consejos de Optimización</h2>
+      
+      <div class="bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-lg font-medium text-[#1E2A3C] mb-4">Mejores Prácticas para Optimización de Imágenes</h3>
+        
+        <ul class="space-y-4 text-[#6c7983]">
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Usa WebP cuando sea posible:</strong> El formato WebP ofrece mejor compresión que JPEG y PNG manteniendo buena calidad.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Implementa carga perezosa:</strong> Usa loading="lazy" para imágenes que no están en la primera vista visible.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Usa el atributo sizes:</strong> Define tamaños responsivos para diferentes breakpoints.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Optimiza la calidad:</strong> Usa quality entre 75-85 para la mayoría de imágenes, solo usa valores más altos cuando sea necesario.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Usa placeholders:</strong> Mejora la experiencia de usuario con imágenes de baja resolución mientras se cargan las de alta calidad.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Define dimensiones:</strong> Siempre especifica width y height para evitar cambios de layout durante la carga.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Usa priority para imágenes críticas:</strong> Marca como priority=true las imágenes importantes en la primera vista.</span>
+          </li>
+          <li class="flex items-start">
+            <span class="text-[#D42C17] mr-2">•</span>
+            <span><strong>Proporciona fallbacks:</strong> Usa fallbackSrc para garantizar que siempre se muestre una imagen, incluso si la principal falla.</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</Layout>
+
+<style>
+  section {
+    border-bottom: 1px solid #EDEDED;
+    padding-bottom: 2rem;
+  }
+  
+  /* Estilos adicionales para mejorar la visualización */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.75rem;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+    }
+  }
+  
+  /* Aspect ratio fallback para navegadores que no soportan aspect-ratio */
+  .aspect-w-4 {
+    position: relative;
+    padding-bottom: 75%; /* 3:4 aspect ratio */
+  }
+  
+  .aspect-w-16 {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 aspect ratio */
+  }
+  
+  .aspect-w-4 > *, .aspect-w-16 > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>

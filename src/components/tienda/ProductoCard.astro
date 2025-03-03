@@ -1,0 +1,157 @@
+---
+// Componente para mostrar una tarjeta de producto en la tienda
+const { producto, url } = Astro.props;
+---
+
+<div class="producto-card">
+  <a href={url} class="producto-imagen">
+    <img src={producto.imagen} alt={producto.nombre} />
+  </a>
+  <div class="producto-info">
+    <h3 class="producto-nombre">
+      <a href={url}>{producto.nombre}</a>
+    </h3>
+    <p class="producto-precio">${producto.precio.toFixed(2)}</p>
+    <p class="producto-descripcion">{producto.descripcion.substring(0, 80)}...</p>
+    <div class="producto-acciones">
+      <a href={url} class="btn btn-outline btn-sm">Ver detalles</a>
+      <button class="btn btn-primary btn-sm agregar-carrito" data-id={producto.id} data-nombre={producto.nombre} data-precio={producto.precio} data-imagen={producto.imagen}>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .491.592l-1.5 8A.5.5 0 0 1 13 12H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l1.313 7h8.17l1.313-7H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style lang="scss">
+  .producto-card {
+    background-color: var(--color-background);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--color-secondary);
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+      border-color: var(--color-accent-light);
+    }
+    
+    .producto-imagen {
+      height: 200px;
+      overflow: hidden;
+      display: block;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s;
+        
+        &:hover {
+          transform: scale(1.05);
+        }
+      }
+    }
+    
+    .producto-info {
+      padding: 1.25rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .producto-nombre {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      
+      a {
+        color: inherit;
+        text-decoration: none;
+        
+        &:hover {
+          color: var(--color-accent);
+          text-decoration: underline;
+        }
+      }
+    }
+    
+    .producto-precio {
+      font-weight: bold;
+      color: var(--color-accent);
+      margin-bottom: 0.75rem;
+      font-size: 1.2rem;
+    }
+    
+    .producto-descripcion {
+      color: var(--color-text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 1.25rem;
+      line-height: 1.4;
+    }
+    
+    .producto-acciones {
+      margin-top: auto;
+      display: flex;
+      gap: 0.5rem;
+      
+      .btn-outline {
+        flex: 1;
+        border: 1px solid var(--color-primary);
+        color: var(--color-primary);
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background-color: var(--color-primary);
+          color: var(--color-stellar-light);
+        }
+      }
+      
+      .agregar-carrito {
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--color-accent);
+        color: var(--color-stellar-light);
+        border: none;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          background-color: var(--color-accent-dark);
+          transform: scale(1.05);
+        }
+      }
+    }
+  }
+</style>
+
+<script>
+  // Este script se ejecutará en el cliente
+  document.addEventListener('DOMContentLoaded', () => {
+    // Agregar event listeners a todos los botones de agregar al carrito
+    document.querySelectorAll('.agregar-carrito').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const button = e.currentTarget;
+        const id = button.dataset.id;
+        const nombre = button.dataset.nombre;
+        const precio = parseFloat(button.dataset.precio);
+        const imagen = button.dataset.imagen;
+        
+        // Aquí iría la lógica para agregar al carrito
+        // En un proyecto real, usaría Nanostores o similar
+        console.log('Agregando al carrito:', { id, nombre, precio, imagen });
+        
+        // Mostrar notificación
+        alert(`${nombre} agregado al carrito`);
+      });
+    });
+  });
+</script>

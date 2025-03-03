@@ -1,0 +1,248 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductGallery from '../../components/ProductGallery.astro';
+import ProductImage from '../../components/ProductImage.astro';
+
+// Datos de ejemplo para la galería
+const productosDestacados = [
+  {
+    id: 'prod-1',
+    name: 'Producto Destacado 1',
+    description: 'Descripción breve del producto destacado número 1 con todas sus características.',
+    image: '/uploads/productos/producto1.jpg',
+    price: 299.99,
+    category: 'Categoría A',
+    badge: {
+      text: 'Nuevo',
+      backgroundColor: '#1E2A3C',
+      color: 'white'
+    }
+  },
+  {
+    id: 'prod-2',
+    name: 'Producto Destacado 2',
+    description: 'Descripción breve del producto destacado número 2 con todas sus características.',
+    image: '/uploads/productos/producto2.jpg',
+    price: 199.50,
+    category: 'Categoría B'
+  },
+  {
+    id: 'prod-3',
+    name: 'Producto Destacado 3',
+    description: 'Descripción breve del producto destacado número 3 con todas sus características.',
+    image: '/uploads/productos/producto3.jpg',
+    price: 149.99,
+    category: 'Categoría A',
+    isComingSoon: true,
+    comingSoonText: 'Próximamente'
+  }
+];
+
+// Productos próximamente
+const productosProximamente = [
+  {
+    id: 'prox-1',
+    name: 'Nuevo Producto 1 - Disponible en Junio 2025',
+    description: 'Este es un producto que estará disponible próximamente. Características avanzadas y diseño innovador.',
+    image: '/uploads/productos/proximo1.jpg',
+    isComingSoon: true,
+    comingSoonText: 'Junio 2025'
+  },
+  {
+    id: 'prox-2',
+    name: 'Nuevo Producto 2 - Próxima Temporada',
+    description: 'Producto exclusivo que estará disponible en nuestra próxima temporada. No te lo pierdas.',
+    image: '/uploads/productos/proximo2.jpg',
+    isComingSoon: true
+  },
+  {
+    id: 'prox-3',
+    name: 'Nuevo Producto 3 - Reserva Ahora',
+    description: 'Producto de edición limitada. Haz tu reserva ahora para asegurar disponibilidad.',
+    image: '/uploads/productos/proximo3.jpg',
+    isComingSoon: true,
+    comingSoonText: 'Reserva Ahora'
+  },
+  {
+    id: 'prox-4',
+    name: 'Nuevo Producto 4',
+    description: 'Próximamente disponible. Características y especificaciones por anunciar.',
+    image: '/uploads/productos/proximo4.jpg',
+    isComingSoon: true
+  }
+];
+
+// Productos con diferentes aspect ratios
+const productosVariados = [
+  {
+    id: 'var-1',
+    name: 'Producto Rectangular',
+    description: 'Este producto tiene una imagen con aspect ratio 16:9.',
+    image: '/uploads/productos/rectangular.jpg',
+    price: 249.99,
+    category: 'Categoría C'
+  },
+  {
+    id: 'var-2',
+    name: 'Producto Cuadrado',
+    description: 'Este producto tiene una imagen con aspect ratio 1:1.',
+    image: '/uploads/productos/cuadrado.jpg',
+    price: 149.99,
+    category: 'Categoría D'
+  },
+  {
+    id: 'var-3',
+    name: 'Producto Vertical',
+    description: 'Este producto tiene una imagen con aspect ratio 3:4.',
+    image: '/uploads/productos/vertical.jpg',
+    price: 199.99,
+    category: 'Categoría E'
+  }
+];
+---
+
+<Layout title="Ejemplos de Galería de Productos">
+  <main class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-[#1E2A3C] mb-8 text-center">Ejemplos de Galería de Productos</h1>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">1. Galería Estándar con Productos Destacados</h2>
+      <p class="text-[#6c7983] mb-8">
+        Esta galería muestra productos destacados con precios y categorías. Incluye un producto con etiqueta "próximamente".
+      </p>
+      
+      <ProductGallery 
+        products={productosDestacados}
+        title="Productos Destacados"
+        subtitle="Nuestra selección de productos premium"
+        showPrice={true}
+        showCategory={true}
+        columns={3}
+      />
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">2. Galería de Productos Próximamente</h2>
+      <p class="text-[#6c7983] mb-8">
+        Esta galería muestra productos que estarán disponibles próximamente, con diferentes textos en las etiquetas.
+      </p>
+      
+      <ProductGallery 
+        products={productosProximamente}
+        title="Próximos Lanzamientos"
+        subtitle="Descubre lo que viene en nuestra próxima temporada"
+        columns={4}
+        aspectRatio="16/9"
+      />
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">3. Galería con Diferentes Aspect Ratios</h2>
+      <p class="text-[#6c7983] mb-8">
+        Esta galería muestra cómo se adaptan las imágenes con diferentes proporciones.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <h3 class="text-lg font-medium text-[#1E2A3C] mb-4">Aspect Ratio 16:9</h3>
+          <ProductGallery 
+            products={[productosVariados[0]]}
+            columns={1}
+            aspectRatio="16/9"
+            showPrice={true}
+            showCategory={true}
+          />
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-medium text-[#1E2A3C] mb-4">Aspect Ratio 1:1</h3>
+          <ProductGallery 
+            products={[productosVariados[1]]}
+            columns={1}
+            aspectRatio="1/1"
+            showPrice={true}
+            showCategory={true}
+          />
+        </div>
+        
+        <div>
+          <h3 class="text-lg font-medium text-[#1E2A3C] mb-4">Aspect Ratio 3:4</h3>
+          <ProductGallery 
+            products={[productosVariados[2]]}
+            columns={1}
+            aspectRatio="3/4"
+            showPrice={true}
+            showCategory={true}
+          />
+        </div>
+      </div>
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">4. Componente de Imagen de Producto con Zoom</h2>
+      <p class="text-[#6c7983] mb-8">
+        Este componente muestra una imagen de producto con funcionalidad de zoom y galería.
+      </p>
+      
+      <div class="max-w-2xl mx-auto">
+        <ProductImage 
+          src="/uploads/productos/producto1.jpg"
+          alt="Producto Destacado 1"
+          additionalImages={[
+            "/uploads/productos/producto1-2.jpg",
+            "/uploads/productos/producto1-3.jpg",
+            "/uploads/productos/producto1-4.jpg"
+          ]}
+          enableZoom={true}
+          enableGallery={true}
+          aspectRatio="4/3"
+        />
+        
+        <div class="mt-6 text-center">
+          <h3 class="text-xl font-semibold text-[#1E2A3C]">Producto Destacado 1</h3>
+          <p class="text-[#D42C17] font-medium mt-2">$299.99</p>
+          <p class="text-[#6c7983] mt-4">
+            Este componente muestra una imagen principal con miniaturas para navegar por la galería.
+            Al hacer clic en la imagen principal, se abre un modal con zoom. Prueba a pasar el mouse
+            sobre la imagen para ver el efecto de zoom.
+          </p>
+        </div>
+      </div>
+    </section>
+    
+    <section class="mb-16">
+      <h2 class="text-2xl font-semibold text-[#1E2A3C] mb-6">5. Diseño Responsive</h2>
+      <p class="text-[#6c7983] mb-8">
+        Esta galería muestra cómo se adapta el diseño a diferentes tamaños de pantalla.
+        Redimensiona la ventana del navegador para ver el comportamiento responsive.
+      </p>
+      
+      <ProductGallery 
+        products={[...productosDestacados, ...productosProximamente.slice(0, 3)]}
+        title="Galería Responsive"
+        subtitle="Se adapta automáticamente a diferentes tamaños de pantalla"
+        columns={3}
+        showPrice={true}
+        showCategory={true}
+      />
+    </section>
+  </main>
+</Layout>
+
+<style>
+  section {
+    border-bottom: 1px solid #EDEDED;
+    padding-bottom: 2rem;
+  }
+  
+  /* Estilos adicionales para mejorar la visualización */
+  @media (max-width: 768px) {
+    h1 {
+      font-size: 1.75rem;
+    }
+    
+    h2 {
+      font-size: 1.5rem;
+    }
+  }
+</style>

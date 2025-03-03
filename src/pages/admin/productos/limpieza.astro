@@ -1,0 +1,307 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../utils/auth';
+
+// Verificar autenticación primero
+const isAuth = await isAuthenticated(Astro.request);
+if (!isAuth) {
+  console.log('Admin limpieza: Usuario no autenticado, redirigiendo a login');
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Limpieza de Productos" activeLink="productos">
+    <div class="p-6 bg-white rounded-lg shadow-md">
+      <h1 class="text-2xl font-bold text-[#1E2A3C] mb-6">Limpieza de Datos de Productos</h1>
+      
+      <div class="mb-6">
+        <p class="text-[#6c7983] mb-4">
+          Esta herramienta te permite identificar y eliminar productos que parecen ser datos de prueba o temporales.
+          El sistema analizará tu base de datos y te mostrará los productos que podrían ser candidatos para eliminación.
+        </p>
+        
+        <div class="flex space-x-4 mb-6">
+          <button id="btnScan" class="px-4 py-2 bg-[#1E2A3C] text-white rounded hover:bg-opacity-90 transition">
+            Escanear Productos
+          </button>
+          <button id="btnBackup" class="px-4 py-2 bg-[#EDEDED] text-[#1E2A3C] rounded hover:bg-opacity-90 transition">
+            Crear Backup
+          </button>
+        </div>
+      </div>
+      
+      <!-- Loader -->
+      <div id="loader" class="hidden flex justify-center my-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#D42C17]"></div>
+      </div>
+      
+      <!-- Resultados del escaneo -->
+      <div id="scanResults" class="hidden">
+        <h2 class="text-xl font-semibold text-[#1E2A3C] mb-4">Productos Identificados</h2>
+        
+        <div class="mb-4 p-4 bg-[#EDEDED] rounded">
+          <p id="resultsCount" class="font-medium"></p>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white">
+            <thead class="bg-[#1E2A3C] text-white">
+              <tr>
+                <th class="py-3 px-4 text-left">Seleccionar</th>
+                <th class="py-3 px-4 text-left">ID</th>
+                <th class="py-3 px-4 text-left">Nombre</th>
+                <th class="py-3 px-4 text-left">Precio</th>
+                <th class="py-3 px-4 text-left">Razones</th>
+              </tr>
+            </thead>
+            <tbody id="productsTableBody">
+              <!-- Los productos se cargarán aquí -->
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="mt-6 flex justify-between">
+          <div>
+            <button id="btnSelectAll" class="px-4 py-2 bg-[#EDEDED] text-[#1E2A3C] rounded hover:bg-opacity-90 transition">
+              Seleccionar Todos
+            </button>
+            <button id="btnDeselectAll" class="px-4 py-2 bg-[#EDEDED] text-[#1E2A3C] rounded hover:bg-opacity-90 transition ml-2">
+              Deseleccionar Todos
+            </button>
+          </div>
+          
+          <button id="btnCleanup" class="px-4 py-2 bg-[#D42C17] text-white rounded hover:bg-opacity-90 transition">
+            Eliminar Seleccionados
+          </button>
+        </div>
+      </div>
+      
+      <!-- Resultados de la limpieza -->
+      <div id="cleanupResults" class="hidden mt-8">
+        <h2 class="text-xl font-semibold text-[#1E2A3C] mb-4">Resultados de la Limpieza</h2>
+        
+        <div id="cleanupSuccess" class="mb-4 p-4 bg-green-100 text-green-800 rounded hidden">
+          <p id="successMessage"></p>
+          <p class="mt-2">Se ha creado una copia de seguridad en: <span id="backupPath" class="font-mono text-sm"></span></p>
+        </div>
+        
+        <div id="cleanupError" class="mb-4 p-4 bg-red-100 text-red-800 rounded hidden">
+          <p id="errorMessage"></p>
+        </div>
+        
+        <div id="removedList" class="mt-4">
+          <h3 class="font-medium mb-2">Productos eliminados:</h3>
+          <ul id="removedItems" class="list-disc pl-5"></ul>
+        </div>
+        
+        <div id="errorList" class="mt-4 hidden">
+          <h3 class="font-medium mb-2 text-[#D42C17]">Errores:</h3>
+          <ul id="errorItems" class="list-disc pl-5"></ul>
+        </div>
+      </div>
+    </div>
+  </AdminLayout>
+
+<script>
+  // Elementos DOM
+  const btnScan = document.getElementById('btnScan');
+  const btnBackup = document.getElementById('btnBackup');
+  const btnSelectAll = document.getElementById('btnSelectAll');
+  const btnDeselectAll = document.getElementById('btnDeselectAll');
+  const btnCleanup = document.getElementById('btnCleanup');
+  const loader = document.getElementById('loader');
+  const scanResults = document.getElementById('scanResults');
+  const resultsCount = document.getElementById('resultsCount');
+  const productsTableBody = document.getElementById('productsTableBody');
+  const cleanupResults = document.getElementById('cleanupResults');
+  const cleanupSuccess = document.getElementById('cleanupSuccess');
+  const cleanupError = document.getElementById('cleanupError');
+  const successMessage = document.getElementById('successMessage');
+  const errorMessage = document.getElementById('errorMessage');
+  const backupPath = document.getElementById('backupPath');
+  const removedItems = document.getElementById('removedItems');
+  const errorList = document.getElementById('errorList');
+  const errorItems = document.getElementById('errorItems');
+  
+  // Estado de la aplicación
+  let testProducts = [];
+  
+  // Función para escanear productos
+  async function scanProducts() {
+    try {
+      loader.classList.remove('hidden');
+      scanResults.classList.add('hidden');
+      cleanupResults.classList.add('hidden');
+      
+      const response = await fetch('/api/admin/cleanup');
+      
+      if (!response.ok) {
+        throw new Error('Error al escanear productos');
+      }
+      
+      const data = await response.json();
+      testProducts = data.testProducts || [];
+      
+      // Mostrar resultados
+      resultsCount.textContent = `Se encontraron ${testProducts.length} productos que parecen ser datos de prueba.`;
+      
+      // Limpiar tabla
+      productsTableBody.innerHTML = '';
+      
+      // Llenar tabla con productos
+      testProducts.forEach(product => {
+        const row = document.createElement('tr');
+        row.classList.add('border-b', 'hover:bg-gray-50');
+        
+        row.innerHTML = `
+          <td class="py-3 px-4">
+            <input type="checkbox" class="product-checkbox" data-id="${product.id}">
+          </td>
+          <td class="py-3 px-4 font-mono text-sm">${product.id}</td>
+          <td class="py-3 px-4">${product.nombre}</td>
+          <td class="py-3 px-4">$${product.precio.toFixed(2)}</td>
+          <td class="py-3 px-4">
+            <ul class="list-disc pl-5">
+              ${product.reasons.map(reason => `<li>${reason}</li>`).join('')}
+            </ul>
+          </td>
+        `;
+        
+        productsTableBody.appendChild(row);
+      });
+      
+      scanResults.classList.remove('hidden');
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al escanear productos: ' + error.message);
+    } finally {
+      loader.classList.add('hidden');
+    }
+  }
+  
+  // Función para crear backup
+  async function createBackup() {
+    try {
+      loader.classList.remove('hidden');
+      
+      const response = await fetch('/api/admin/cleanup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productIds: [] }) // Enviar array vacío para solo crear backup
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al crear backup');
+      }
+      
+      const data = await response.json();
+      
+      alert(`Backup creado correctamente en: ${data.backupPath}`);
+    } catch (error) {
+      console.error('Error:', error);
+      alert('Error al crear backup: ' + error.message);
+    } finally {
+      loader.classList.add('hidden');
+    }
+  }
+  
+  // Función para limpiar productos
+  async function cleanupProducts() {
+    try {
+      // Obtener IDs seleccionados
+      const checkboxes = document.querySelectorAll('.product-checkbox:checked');
+      const productIds = Array.from(checkboxes).map(cb => cb.getAttribute('data-id'));
+      
+      if (productIds.length === 0) {
+        alert('No hay productos seleccionados para eliminar');
+        return;
+      }
+      
+      // Confirmar eliminación
+      const confirmed = confirm(`¿Estás seguro de que deseas eliminar ${productIds.length} productos? Esta acción no se puede deshacer.`);
+      
+      if (!confirmed) {
+        return;
+      }
+      
+      loader.classList.remove('hidden');
+      cleanupResults.classList.add('hidden');
+      
+      const response = await fetch('/api/admin/cleanup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ productIds })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al limpiar productos');
+      }
+      
+      const data = await response.json();
+      
+      // Mostrar resultados
+      cleanupSuccess.classList.remove('hidden');
+      cleanupError.classList.add('hidden');
+      successMessage.textContent = `Se han eliminado ${data.result.removed.length} productos correctamente.`;
+      backupPath.textContent = data.backupPath;
+      
+      // Mostrar lista de eliminados
+      removedItems.innerHTML = '';
+      data.result.removed.forEach(id => {
+        const li = document.createElement('li');
+        li.textContent = id;
+        removedItems.appendChild(li);
+      });
+      
+      // Mostrar errores si hay
+      if (data.result.errors && data.result.errors.length > 0) {
+        errorList.classList.remove('hidden');
+        errorItems.innerHTML = '';
+        data.result.errors.forEach(err => {
+          const li = document.createElement('li');
+          li.textContent = `${err.id}: ${err.error}`;
+          errorItems.appendChild(li);
+        });
+      } else {
+        errorList.classList.add('hidden');
+      }
+      
+      cleanupResults.classList.remove('hidden');
+      
+      // Actualizar lista de productos
+      scanProducts();
+    } catch (error) {
+      console.error('Error:', error);
+      cleanupSuccess.classList.add('hidden');
+      cleanupError.classList.remove('hidden');
+      errorMessage.textContent = 'Error al limpiar productos: ' + error.message;
+      cleanupResults.classList.remove('hidden');
+    } finally {
+      loader.classList.add('hidden');
+    }
+  }
+  
+  // Event listeners
+  btnScan.addEventListener('click', scanProducts);
+  btnBackup.addEventListener('click', createBackup);
+  btnCleanup.addEventListener('click', cleanupProducts);
+  
+  btnSelectAll.addEventListener('click', () => {
+    document.querySelectorAll('.product-checkbox').forEach(cb => {
+      cb.checked = true;
+    });
+  });
+  
+  btnDeselectAll.addEventListener('click', () => {
+    document.querySelectorAll('.product-checkbox').forEach(cb => {
+      cb.checked = false;
+    });
+  });
+  
+  // Iniciar escaneo al cargar la página
+  document.addEventListener('DOMContentLoaded', scanProducts);
+</script>

@@ -1,0 +1,18 @@
+---
+import { createSafeUrl } from '../utils/routing';
+
+interface Props {
+  to: string;
+  params?: unknown[];
+  activeClass?: string;
+}
+
+const { to, params = [], activeClass = 'active' } = Astro.props;
+const currentPath = Astro.url.pathname;
+const href = createSafeUrl(to, ...params);
+const isActive = currentPath === href || currentPath.startsWith(`${href}/`);
+---
+
+<a href={href} class:list={[{ [activeClass]: isActive }]}>
+  <slot />
+</a>

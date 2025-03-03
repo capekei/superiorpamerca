@@ -1,0 +1,246 @@
+---
+/**
+ * Componente ProductImage para mostrar imágenes de productos con zoom y galería
+ * Optimizado para Cloudflare y compatible con diferentes tamaños de pantalla
+ */
+import OptimizedImage from './OptimizedImage.astro';
+
+interface Props {
+  src: string;
+  alt: string;
+  additionalImages?: string[];
+  enableZoom?: boolean;
+  enableGallery?: boolean;
+  aspectRatio?: string;
+  class?: string;
+}
+
+const { 
+  src, 
+  alt, 
+  additionalImages = [],
+  enableZoom = true,
+  enableGallery = true,
+  aspectRatio = '4/3',
+  class: className = ''
+} = Astro.props;
+
+// Combinar todas las imágenes
+const allImages = [src, ...additionalImages].filter(Boolean);
+
+// Clase para el contenedor principal
+const containerClass = `product-image-container ${className}`;
+
+// ID único para este componente
+const componentId = `product-image-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class={containerClass} id={componentId}>
+  <!-- Imagen principal -->
+  <div class="main-image-container relative overflow-hidden rounded-lg shadow-lg" style={`aspect-ratio: ${aspectRatio};`}>
+    <OptimizedImage
+      src={src}
+      alt={alt}
+      class="main-image w-full h-full"
+      objectFit="contain"
+    />
+    
+    {enableZoom && (
+      <div class="zoom-overlay absolute inset-0 bg-transparent opacity-0 transition-opacity hover:opacity-100">
+        <div class="zoom-hint absolute top-2 right-2 bg-[#1E2A3C]/80 text-white px-2 py-1 rounded-md text-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          Zoom
+        </div>
+      </div>
+    )}
+  </div>
+  
+  <!-- Galería de imágenes adicionales -->
+  {enableGallery && allImages.length > 1 && (
+    <div class="image-gallery mt-4 grid grid-cols-4 gap-2">
+      {allImages.map((img, index) => (
+        <button 
+          class={`gallery-thumbnail relative rounded overflow-hidden border-2 ${index === 0 ? 'border-[#D42C17]' : 'border-transparent'} hover:border-[#D42C17] transition-all`}
+          data-index={index}
+          data-src={img}
+          aria-label={`Ver imagen ${index + 1} de ${alt}`}
+        >
+          <div class="aspect-square">
+            <OptimizedImage
+              src={img}
+              alt={`${alt} - Imagen ${index + 1}`}
+              class="w-full h-full"
+              objectFit="cover"
+            />
+          </div>
+        </button>
+      ))}
+    </div>
+  )}
+  
+  <!-- Modal para zoom -->
+  {enableZoom && (
+    <div class="zoom-modal fixed inset-0 bg-[#1E2A3C]/90 z-50 hidden flex items-center justify-center p-4">
+      <div class="zoom-modal-content relative bg-white rounded-lg max-w-4xl max-h-[90vh] overflow-hidden">
+        <div class="zoom-image-container p-4 flex items-center justify-center">
+          <img src={src} alt={alt} class="zoom-image max-w-full max-h-[80vh] object-contain" />
+        </div>
+        <button class="close-zoom-btn absolute top-2 right-2 bg-[#D42C17] text-white rounded-full w-8 h-8 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )}
+</div>
+
+<script define:vars={{ componentId, enableZoom, enableGallery }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById(componentId);
+    if (!container) return;
+    
+    // Referencias a elementos
+    const mainImageContainer = container.querySelector('.main-image-container');
+    const mainImage = container.querySelector('.main-image img');
+    const zoomModal = container.querySelector('.zoom-modal');
+    const zoomImage = container.querySelector('.zoom-image');
+    const closeZoomBtn = container.querySelector('.close-zoom-btn');
+    const galleryThumbnails = container.querySelectorAll('.gallery-thumbnail');
+    
+    // Función para cambiar la imagen principal
+    const changeMainImage = (src) => {
+      if (mainImage) {
+        mainImage.src = src;
+        
+        // También actualizar la imagen de zoom
+        if (zoomImage) {
+          zoomImage.src = src;
+        }
+      }
+    };
+    
+    // Eventos para la galería
+    if (enableGallery) {
+      galleryThumbnails.forEach(thumbnail => {
+        thumbnail.addEventListener('click', () => {
+          // Actualizar bordes
+          galleryThumbnails.forEach(t => t.classList.remove('border-[#D42C17]'));
+          thumbnail.classList.add('border-[#D42C17]');
+          
+          // Cambiar imagen principal
+          const src = thumbnail.getAttribute('data-src');
+          if (src) changeMainImage(src);
+        });
+      });
+    }
+    
+    // Eventos para zoom
+    if (enableZoom) {
+      // Abrir modal de zoom
+      mainImageContainer.addEventListener('click', () => {
+        if (zoomModal) {
+          zoomModal.classList.remove('hidden');
+          document.body.style.overflow = 'hidden'; // Prevenir scroll
+        }
+      });
+      
+      // Cerrar modal de zoom
+      if (closeZoomBtn) {
+        closeZoomBtn.addEventListener('click', () => {
+          if (zoomModal) {
+            zoomModal.classList.add('hidden');
+            document.body.style.overflow = ''; // Restaurar scroll
+          }
+        });
+      }
+      
+      // También cerrar al hacer clic fuera de la imagen
+      if (zoomModal) {
+        zoomModal.addEventListener('click', (e) => {
+          if (e.target === zoomModal) {
+            zoomModal.classList.add('hidden');
+            document.body.style.overflow = '';
+          }
+        });
+      }
+      
+      // Tecla ESC para cerrar
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && zoomModal && !zoomModal.classList.contains('hidden')) {
+          zoomModal.classList.add('hidden');
+          document.body.style.overflow = '';
+        }
+      });
+    }
+    
+    // Funcionalidad de zoom con movimiento del mouse
+    if (enableZoom && zoomImage) {
+      const zoomContainer = zoomImage.parentElement;
+      
+      zoomImage.addEventListener('mousemove', (e) => {
+        const { left, top, width, height } = zoomContainer.getBoundingClientRect();
+        const x = (e.clientX - left) / width;
+        const y = (e.clientY - top) / height;
+        
+        // Aplicar transformación para efecto de zoom suave
+        zoomImage.style.transformOrigin = `${x * 100}% ${y * 100}%`;
+      });
+      
+      // Zoom in/out con rueda del mouse
+      zoomContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        
+        const currentScale = zoomImage.style.transform 
+          ? parseFloat(zoomImage.style.transform.replace('scale(', '').replace(')', '')) 
+          : 1;
+          
+        let newScale = currentScale - e.deltaY * 0.01;
+        newScale = Math.min(Math.max(1, newScale), 3); // Limitar entre 1x y 3x
+        
+        zoomImage.style.transform = `scale(${newScale})`;
+      });
+    }
+  });
+</script>
+
+<style>
+  .main-image-container {
+    cursor: zoom-in;
+    background-color: #FFFFFF;
+    transition: all 0.3s ease;
+  }
+  
+  .main-image-container:hover {
+    box-shadow: 0 10px 25px -5px rgba(30, 42, 60, 0.1), 
+                0 8px 10px -6px rgba(30, 42, 60, 0.1);
+  }
+  
+  .gallery-thumbnail {
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .gallery-thumbnail:hover {
+    transform: translateY(-2px);
+  }
+  
+  .zoom-modal {
+    transition: opacity 0.3s ease;
+  }
+  
+  .zoom-image {
+    transition: transform 0.1s ease;
+  }
+  
+  .close-zoom-btn {
+    transition: all 0.2s ease;
+  }
+  
+  .close-zoom-btn:hover {
+    background-color: #b82413;
+    transform: rotate(90deg);
+  }
+</style>

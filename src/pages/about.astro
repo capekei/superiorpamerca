@@ -1,62 +1,72 @@
 ---
-import Layout from '../layouts/BlogPost.astro';
+import Layout from '../layouts/Page.astro';
 ---
 
 <Layout
-	title="About Me"
-	description="Lorem ipsum dolor sit amet"
-	pubDate={new Date('August 08 2021')}
+	title="Sobre Nosotros"
+	description="Conoce más sobre Superior Pamerca"
 	heroImage="/blog-placeholder-about.jpg"
 >
-	<p>
-		Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-		labore et dolore magna aliqua. Vitae ultricies leo integer malesuada nunc vel risus commodo
-		viverra. Adipiscing enim eu turpis egestas pretium. Euismod elementum nisi quis eleifend quam
-		adipiscing. In hac habitasse platea dictumst vestibulum. Sagittis purus sit amet volutpat. Netus
-		et malesuada fames ac turpis egestas. Eget magna fermentum iaculis eu non diam phasellus
-		vestibulum lorem. Varius sit amet mattis vulputate enim. Habitasse platea dictumst quisque
-		sagittis. Integer quis auctor elit sed vulputate mi. Dictumst quisque sagittis purus sit amet.
-	</p>
+	<div class="max-w-4xl mx-auto px-4 py-8">
+		<section class="mb-12">
+			<h2 class="text-3xl font-bold text-[#1E2A3C] mb-6 pb-2 border-b border-[#EDEDED]">Nuestra Historia</h2>
+			<p class="text-[#6c7983] mb-4">
+				Fundada en 2023, Superior Pamerca nació con la visión de ofrecer productos de alta calidad a precios accesibles. 
+				Nuestra empresa comenzó como un pequeño emprendimiento familiar y ha crecido hasta convertirse en 
+				una tienda online de referencia en el mercado.
+			</p>
+			<p class="text-[#6c7983]">
+				Desde nuestros inicios, nos hemos comprometido con la excelencia en el servicio al cliente y la 
+				calidad de nuestros productos. Cada artículo que ofrecemos es cuidadosamente seleccionado para 
+				garantizar la mejor experiencia de compra para nuestros clientes.
+			</p>
+		</section>
 
-	<p>
-		Morbi tristique senectus et netus. Id semper risus in hendrerit gravida rutrum quisque non
-		tellus. Habitasse platea dictumst quisque sagittis purus sit amet. Tellus molestie nunc non
-		blandit massa. Cursus vitae congue mauris rhoncus. Accumsan tortor posuere ac ut. Fringilla urna
-		porttitor rhoncus dolor. Elit ullamcorper dignissim cras tincidunt lobortis. In cursus turpis
-		massa tincidunt dui ut ornare lectus. Integer feugiat scelerisque varius morbi enim nunc.
-		Bibendum neque egestas congue quisque egestas diam. Cras ornare arcu dui vivamus arcu felis
-		bibendum. Dignissim suspendisse in est ante in nibh mauris. Sed tempus urna et pharetra pharetra
-		massa massa ultricies mi.
-	</p>
+		<section class="mb-12">
+			<h2 class="text-3xl font-bold text-[#1E2A3C] mb-6 pb-2 border-b border-[#EDEDED]">Nuestra Misión</h2>
+			<p class="text-[#6c7983] mb-4">
+				En Superior Pamerca, nuestra misión es proporcionar productos excepcionales que mejoren la vida 
+				cotidiana de nuestros clientes. Nos esforzamos por ofrecer una experiencia de compra online 
+				sencilla, segura y satisfactoria.
+			</p>
+			<p class="text-[#6c7983]">
+				Creemos en la construcción de relaciones duraderas con nuestros clientes basadas en la confianza, 
+				la transparencia y el compromiso con la calidad.
+			</p>
+		</section>
 
-	<p>
-		Mollis nunc sed id semper risus in. Convallis a cras semper auctor neque. Diam sit amet nisl
-		suscipit. Lacus viverra vitae congue eu consequat ac felis donec. Egestas integer eget aliquet
-		nibh praesent tristique magna sit amet. Eget magna fermentum iaculis eu non diam. In vitae
-		turpis massa sed elementum. Tristique et egestas quis ipsum suspendisse ultrices. Eget lorem
-		dolor sed viverra ipsum. Vel turpis nunc eget lorem dolor sed viverra. Posuere ac ut consequat
-		semper viverra nam. Laoreet suspendisse interdum consectetur libero id faucibus. Diam phasellus
-		vestibulum lorem sed risus ultricies tristique. Rhoncus dolor purus non enim praesent elementum
-		facilisis. Ultrices tincidunt arcu non sodales neque. Tempus egestas sed sed risus pretium quam
-		vulputate. Viverra suspendisse potenti nullam ac tortor vitae purus faucibus ornare. Fringilla
-		urna porttitor rhoncus dolor purus non. Amet dictum sit amet justo donec enim.
-	</p>
+		<section class="mb-12">
+			<h2 class="text-3xl font-bold text-[#1E2A3C] mb-6 pb-2 border-b border-[#EDEDED]">Nuestros Valores</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<div class="bg-[#EDEDED]/30 p-6 rounded-lg shadow-lg">
+					<h3 class="text-xl font-semibold text-[#1E2A3C] mb-3">Calidad</h3>
+					<p class="text-[#6c7983]">Nos comprometemos a ofrecer solo productos de la más alta calidad que superen las expectativas de nuestros clientes.</p>
+				</div>
+				<div class="bg-[#EDEDED]/30 p-6 rounded-lg shadow-lg">
+					<h3 class="text-xl font-semibold text-[#1E2A3C] mb-3">Integridad</h3>
+					<p class="text-[#6c7983]">Actuamos con honestidad y transparencia en todas nuestras operaciones comerciales.</p>
+				</div>
+				<div class="bg-[#EDEDED]/30 p-6 rounded-lg shadow-lg">
+					<h3 class="text-xl font-semibold text-[#1E2A3C] mb-3">Innovación</h3>
+					<p class="text-[#6c7983]">Buscamos constantemente nuevas formas de mejorar nuestros productos y servicios.</p>
+				</div>
+				<div class="bg-[#EDEDED]/30 p-6 rounded-lg shadow-lg">
+					<h3 class="text-xl font-semibold text-[#1E2A3C] mb-3">Servicio al Cliente</h3>
+					<p class="text-[#6c7983]">Priorizamos la satisfacción del cliente en cada interacción y decisión que tomamos.</p>
+				</div>
+			</div>
+		</section>
 
-	<p>
-		Mattis ullamcorper velit sed ullamcorper morbi tincidunt. Tortor posuere ac ut consequat semper
-		viverra. Tellus mauris a diam maecenas sed enim ut sem viverra. Venenatis urna cursus eget nunc
-		scelerisque viverra mauris in. Arcu ac tortor dignissim convallis aenean et tortor at. Curabitur
-		gravida arcu ac tortor dignissim convallis aenean et tortor. Egestas tellus rutrum tellus
-		pellentesque eu. Fusce ut placerat orci nulla pellentesque dignissim enim sit amet. Ut enim
-		blandit volutpat maecenas volutpat blandit aliquam etiam. Id donec ultrices tincidunt arcu. Id
-		cursus metus aliquam eleifend mi.
-	</p>
-
-	<p>
-		Tempus quam pellentesque nec nam aliquam sem. Risus at ultrices mi tempus imperdiet. Id porta
-		nibh venenatis cras sed felis eget velit. Ipsum a arcu cursus vitae. Facilisis magna etiam
-		tempor orci eu lobortis elementum. Tincidunt dui ut ornare lectus sit. Quisque non tellus orci
-		ac. Blandit libero volutpat sed cras. Nec tincidunt praesent semper feugiat nibh sed pulvinar
-		proin gravida. Egestas integer eget aliquet nibh praesent tristique magna.
-	</p>
+		<section class="mb-12">
+			<h2 class="text-3xl font-bold text-[#1E2A3C] mb-6 pb-2 border-b border-[#EDEDED]">Contáctanos</h2>
+			<p class="text-[#6c7983] mb-4">
+				¿Tienes alguna pregunta o comentario? Nos encantaría saber de ti. Puedes contactarnos a través de:
+			</p>
+			<ul class="list-none p-0 space-y-3">
+				<li class="text-[#6c7983]"><strong class="text-[#1E2A3C]">Email:</strong> info@superiorpamerca.com</li>
+				<li class="text-[#6c7983]"><strong class="text-[#1E2A3C]">Teléfono:</strong> (123) 456-7890</li>
+				<li class="text-[#6c7983]"><strong class="text-[#1E2A3C]">Horario de atención:</strong> Lunes a Viernes, 9:00 AM - 6:00 PM</li>
+			</ul>
+		</section>
+	</div>
 </Layout>

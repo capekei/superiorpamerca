@@ -1,0 +1,270 @@
+---
+import BaseHead from '../../../components/BaseHead.astro';
+import Header from '../../../components/Header.astro';
+import Footer from '../../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../../consts';
+import { getCollection } from 'astro:content';
+import OptimizedImage from '../../../components/OptimizedImage.astro';
+import ProductNotFound from '../../../components/ProductNotFound.astro';
+import { formatProductPrice, getProductUrl } from '../../../utils/productUtils';
+import { productExists, getProductById, isValidProductId } from '../../../utils/productValidator';
+import { logger } from '../../../utils/logger';
+
+// Generar rutas dinámicas para cada producto
+export async function getStaticPaths() {
+  try {
+    const productos = await getCollection('productos');
+    logger.info(`Generando rutas para ${productos.length} productos`);
+    
+    return productos.map(producto => {
+      logger.debug(`Generando ruta para producto ID: ${producto.id}`);
+      return {
+        params: { id: producto.id },
+        props: { producto: producto.data, id: producto.id, found: true }
+      };
+    });
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    logger.error(`Error al generar rutas de productos: ${errorMessage}`);
+    return [];
+  }
+}
+
+// Obtener propiedades del producto
+const { id } = Astro.params;
+let { producto, found = false } = Astro.props;
+
+// Validación adicional del ID del producto
+if (!id || !isValidProductId(id)) {
+  logger.error(`ID de producto con formato inválido o vacío: ${id || 'undefined'}`);
+  found = false;
+}
+
+// Verificar si el producto existe
+if (!found || !producto) {
+  logger.error(`Producto no encontrado: ${id}`);
+  // Intentar obtener el producto por ID (útil para modo desarrollo o SSR)
+  try {
+    const productoEncontrado = await getProductById(id);
+    if (productoEncontrado) {
+      producto = productoEncontrado;
+      found = true;
+      logger.info(`Producto recuperado dinámicamente: ${id}`);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+    logger.error(`Error al intentar recuperar producto dinámicamente: ${errorMessage}`);
+  }
+}
+
+// Valores predeterminados para evitar errores si el producto no existe
+const nombre = producto?.nombre || 'Producto no encontrado';
+const precio = producto?.precio || 0;
+const descripcion = producto?.descripcion || 'Lo sentimos, este producto no está disponible.';
+const imagenes = producto?.imagenes || [];
+const stock = producto?.stock || 0;
+const categorias = producto?.categorias || [];
+const caracteristicas = producto?.caracteristicas || [];
+const destacado = producto?.destacado || false;
+
+// Obtener la imagen principal (con manejo de errores)
+const imagenPrincipal = imagenes.length > 0 
+  ? (imagenes.find(img => img.principal) || imagenes[0])
+  : { url: '/images/producto-placeholder.jpg', tipo: 'local' };
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`${nombre} | ${SITE_TITLE}`} description={descripcion} />
+		<style>
+			.error-container {
+				background-color: #FEF2F2;
+				border: 1px solid #F87171;
+				border-radius: 0.5rem;
+				padding: 1.5rem;
+				margin-bottom: 2rem;
+			}
+		</style>
+	</head>
+	<body>
+		<Header />
+		<main>
+      <div class="container mx-auto px-4 py-8">
+        {!found && <ProductNotFound productId={id} />}
+        <div class="mb-6">
+          <a href="/tienda" class="text-primary hover:underline flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z" clip-rule="evenodd" />
+            </svg>
+            Volver a la tienda
+          </a>
+        </div>
+        
+        {found && <div class="bg-white rounded-lg shadow-lg overflow-hidden p-6" id="producto-detalle" data-id={id}>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Galería de imágenes -->
+            <div class="producto-galeria">
+              <div class="imagen-principal mb-4 rounded-lg overflow-hidden border border-secondary">
+                <OptimizedImage 
+                  src={imagenPrincipal.url} 
+                  alt={nombre} 
+                  width={600}
+                  height={450}
+                  aspectRatio="4:3"
+                  class="w-full h-auto"
+                  objectFit="contain"
+                  quality={90}
+                  loading="eager"
+                  priority={true}
+                  fallbackSrc="/images/producto-placeholder.jpg"
+                />
+              </div>
+              
+              {imagenes.length > 1 && (
+                <div class="grid grid-cols-4 gap-2">
+                  {imagenes.map((imagen, index) => (
+                    <div 
+                      class={`cursor-pointer rounded-md overflow-hidden border-2 ${imagen.url === imagenPrincipal.url ? 'border-primary' : 'border-transparent'}`}
+                      data-image-url={imagen.url}
+                      data-image-index={index}
+                    >
+                      <OptimizedImage 
+                        src={imagen.url} 
+                        alt={`${nombre} - Vista ${index + 1}`} 
+                        width={150}
+                        height={120}
+                        class="w-full h-20"
+                        objectFit="cover"
+                        quality={75}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <!-- Información del producto -->
+            <div class="producto-info">
+              <h1 class="text-3xl font-bold text-primary mb-2">{nombre}</h1>
+              
+              <div class="flex items-center mb-4">
+                <span class="text-2xl font-bold text-accent">{formatProductPrice(precio)}</span>
+                {stock > 0 ? (
+                  <span class="ml-4 px-2 py-1 bg-green-100 text-green-800 text-sm rounded-full">
+                    En stock ({stock} disponibles)
+                  </span>
+                ) : (
+                  <span class="ml-4 px-2 py-1 bg-red-100 text-red-800 text-sm rounded-full">
+                    Agotado
+                  </span>
+                )}
+              </div>
+              
+              {categorias && categorias.length > 0 && (
+                <div class="mb-4">
+                  <div class="flex flex-wrap gap-2">
+                    {categorias.map(categoria => (
+                      <span class="px-2 py-1 bg-gray-100 text-gray-800 text-sm rounded-full">
+                        {categoria}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div class="border-t border-b border-gray-200 py-4 my-4">
+                <p class="text-text-secondary">{descripcion}</p>
+              </div>
+              
+              {caracteristicas && caracteristicas.length > 0 && (
+                <div class="mb-6">
+                  <h3 class="text-lg font-semibold mb-2">Características:</h3>
+                  <ul class="list-disc pl-5 space-y-1">
+                    {caracteristicas.map(caracteristica => (
+                      <li>{caracteristica}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              <div class="flex space-x-4">
+                <button 
+                  class="flex-1 px-6 py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={stock === 0}
+                >
+                  Añadir al carrito
+                </button>
+                <button class="p-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>}
+      </div>
+		</main>
+		<Footer />
+    
+    <script>
+      // Script para manejar la galería de imágenes
+      document.addEventListener('DOMContentLoaded', () => {
+        try {
+          // Verificar si hay galería de imágenes
+          const imagenPrincipal = document.querySelector('.imagen-principal img');
+          const miniaturasDivs = document.querySelectorAll('.grid-cols-4 > div');
+          
+          if (imagenPrincipal && miniaturasDivs.length > 0) {
+            console.log('Inicializando galería de imágenes con', miniaturasDivs.length, 'miniaturas');
+            
+            miniaturasDivs.forEach(div => {
+              div.addEventListener('click', () => {
+                try {
+                  // Obtener URL de la imagen desde el atributo data
+                  const imageUrl = div.dataset.imageUrl;
+                  
+                  if (!imageUrl) {
+                    console.error('Error: No se encontró URL de imagen en la miniatura');
+                    return;
+                  }
+                  
+                  console.log('Cambiando imagen principal a:', imageUrl);
+                  
+                  // Actualizar imagen principal (buscamos la imagen dentro del componente OptimizedImage)
+                  if (imagenPrincipal) {
+                    imagenPrincipal.src = imageUrl;
+                    imagenPrincipal.srcset = ''; // Limpiar srcset para forzar la carga de la nueva imagen
+                  }
+                  
+                  // Actualizar bordes
+                  document.querySelectorAll('.grid-cols-4 > div').forEach(d => {
+                    d.classList.remove('border-primary');
+                    d.classList.add('border-transparent');
+                  });
+                  
+                  div.classList.remove('border-transparent');
+                  div.classList.add('border-primary');
+                } catch (err) {
+                  console.error('Error al cambiar imagen:', err);
+                }
+              });
+            });
+          } else {
+            console.log('No se encontró galería de imágenes o solo hay una imagen');
+          }
+          
+          // Registrar visualización de producto para análisis
+          const productoDetalle = document.getElementById('producto-detalle');
+          if (productoDetalle) {
+            const productoId = productoDetalle.dataset.id;
+            console.log(`Producto visualizado: ${productoId}`);
+            // Aquí se podría enviar un evento de análisis
+          }
+        } catch (error) {
+          console.error('Error en la inicialización de la galería:', error);
+        }
+      });
+    </script>
+	</body>
+</html>

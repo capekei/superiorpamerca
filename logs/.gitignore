@@ -1,0 +1,4 @@
+# Ignorar archivos de logs excepto este .gitignore
+*
+!.gitignore
+!debug-api.js

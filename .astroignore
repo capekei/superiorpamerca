@@ -1,0 +1,7 @@
+# Archivos de respaldo que Astro debe ignorar
+**/*.bak
+**/*.bak.*
+**/*.backup
+**/*.old
+**/*~
+**/backups/

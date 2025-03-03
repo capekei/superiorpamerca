@@ -1,0 +1,185 @@
+---
+/**
+ * Componente OptimizedImage para manejar imágenes optimizadas en Astro.js con Cloudflare
+ * Compatible con imágenes locales y remotas
+ */
+import { getImageAttributes, normalizeImagePath } from '../utils/cloudflareImageUtils';
+
+interface Props {
+  src: string;
+  alt: string;
+  width?: number;
+  height?: number;
+  aspectRatio?: string;
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
+  sizes?: string;
+  fallbackSrc?: string; // Imagen de fallback si la principal falla
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+  objectPosition?: string;
+  format?: 'auto' | 'webp' | 'avif' | 'jpeg' | 'png';
+  quality?: number;
+  usePlaceholder?: boolean;
+  placeholderSize?: number;
+  breakpoints?: number[];
+  priority?: boolean;
+  background?: string;
+}
+
+const { 
+  src, 
+  alt, 
+  width, 
+  height, 
+  aspectRatio,
+  class: className = '', 
+  loading = 'lazy',
+  decoding = 'async',
+  sizes = '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw',
+  fallbackSrc = '/images/placeholder.jpg',
+  objectFit = 'cover',
+  objectPosition = 'center',
+  format = 'auto',
+  quality = 80,
+  usePlaceholder = true,
+  placeholderSize = 20,
+  breakpoints,
+  priority = false,
+  background
+} = Astro.props;
+
+// Obtener atributos optimizados para la imagen
+const imageAttributes = getImageAttributes(src, alt, {
+  width,
+  height,
+  aspectRatio,
+  fit: objectFit as 'cover' | 'contain' | 'scale-down' | 'crop' | 'pad',
+  format,
+  quality,
+  loading,
+  decoding,
+  sizes,
+  breakpoints,
+  className: `optimized-image object-${objectFit}`,
+  usePlaceholder,
+  placeholderSize,
+  objectPosition,
+  priority
+});
+
+// Estilo para el contenedor
+const containerStyles = [];
+
+// Aplicar dimensiones si se proporcionan
+if (width) containerStyles.push(`width: ${width}px`);
+if (height) containerStyles.push(`height: ${height}px`);
+
+// Aplicar aspect ratio si se proporciona
+if (aspectRatio) containerStyles.push(`aspect-ratio: ${aspectRatio}`);
+
+// Aplicar color de fondo si se proporciona
+if (background) containerStyles.push(`background-color: ${background}`);
+
+// Clase para el contenedor
+const containerClass = `image-container ${className}`;
+---
+
+<div class={containerClass} style={containerStyles.length > 0 ? containerStyles.join(';') : undefined}>
+  <img 
+    {...imageAttributes}
+    onerror={`this.onerror=null; this.src='${normalizeImagePath(fallbackSrc)}'; this.classList.add('fallback-image');`}
+  />
+</div>
+
+<style>
+  .image-container {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    width: 100%;
+  }
+  
+  .optimized-image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transition: opacity 0.3s ease;
+  }
+  
+  .fallback-image {
+    opacity: 0.7;
+  }
+  
+  /* Estilos para object-fit */
+  .object-cover {
+    object-fit: cover;
+  }
+  
+  .object-contain {
+    object-fit: contain;
+  }
+  
+  .object-fill {
+    object-fit: fill;
+  }
+  
+  .object-none {
+    object-fit: none;
+  }
+  
+  .object-scale-down {
+    object-fit: scale-down;
+  }
+</style>
+
+<script>
+  // Script para manejar lazy loading, placeholders y fallbacks
+  document.addEventListener('DOMContentLoaded', () => {
+    const images = document.querySelectorAll('.optimized-image');
+    
+    // Función para cargar imagen completa
+    const loadFullImage = (img) => {
+      // Si hay un placeholder, aplicar efecto de transición
+      if (img.dataset.placeholder) {
+        img.style.opacity = '0';
+        img.addEventListener('load', () => {
+          img.style.opacity = '1';
+        }, { once: true });
+      }
+      
+      // Si hay una imagen src en data-src, cargarla
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+      }
+    };
+    
+    // Observer para lazy loading
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            loadFullImage(img);
+            imageObserver.unobserve(img);
+          }
+        });
+      }, {
+        rootMargin: '200px' // Cargar imágenes cuando estén a 200px de entrar en viewport
+      });
+      
+      images.forEach(img => {
+        if (img.getAttribute('loading') === 'lazy') {
+          imageObserver.observe(img);
+        } else {
+          // Para imágenes con loading='eager', cargar inmediatamente
+          loadFullImage(img);
+        }
+      });
+    } else {
+      // Fallback para navegadores que no soportan IntersectionObserver
+      images.forEach(img => loadFullImage(img));
+    }
+  });
+</script>

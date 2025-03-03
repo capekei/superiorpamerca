@@ -1,0 +1,88 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { getCollection } from 'astro:content';
+import { getProductUrl, getProductMainImage, formatProductPrice, truncateDescription } from '../../utils/productUtils';
+import OptimizedImage from '../../components/OptimizedImage.astro';
+
+// Obtener productos de la colección
+const productosCollection = await getCollection('productos');
+
+// Si no hay productos en la colección, usar datos de ejemplo
+const productos = productosCollection.length > 0 ? 
+  productosCollection.map(producto => ({
+    id: producto.id,
+    nombre: producto.data.nombre,
+    precio: producto.data.precio,
+    descripcion: producto.data.descripcion,
+    imagenes: producto.data.imagenes,
+    stock: producto.data.stock,
+    categorias: producto.data.categorias
+  })) : [
+  {
+    id: 'producto-ejemplo',
+    nombre: 'Producto de ejemplo',
+    precio: 29.99,
+    descripcion: 'Este es un producto de ejemplo para mostrar la estructura de datos.',
+    imagen: '/blog-placeholder-1.jpg'
+  }
+];
+
+// Obtener todas las categorías únicas
+const categorias = [...new Set(
+  productosCollection
+    .flatMap(p => p.data.categorias || [])
+)];
+
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`Tienda | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+	</head>
+	<body>
+		<Header />
+		<main>
+      <div class="container mx-auto px-4 py-8">
+        <section class="py-8">
+          <h1 class="text-center text-4xl font-bold mb-8">Nuestra Tienda</h1>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {productos.map(producto => (
+              <div class="bg-white rounded-lg shadow-md overflow-hidden border border-secondary hover:shadow-xl transition-all duration-300 hover:translate-y-[-5px] flex flex-col h-full">
+                <div class="relative h-48 overflow-hidden">
+                  <OptimizedImage 
+                    src={getProductMainImage(producto.imagenes)} 
+                    alt={producto.nombre} 
+                    width={400}
+                    height={300}
+                    class="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                  />
+                  {producto.stock <= 0 && (
+                    <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
+                      Agotado
+                    </div>
+                  )}
+                </div>
+                <div class="p-5 flex flex-col flex-1">
+                  <h3 class="text-xl font-semibold text-[#1E2A3C] mb-2">{producto.nombre}</h3>
+                  <p class="text-[#D42C17] font-bold text-xl mb-3">{formatProductPrice(producto.precio)}</p>
+                  <p class="text-[#6c7983] mb-4 flex-grow">{truncateDescription(producto.descripcion, 80)}</p>
+                  <a 
+                    href={getProductUrl(producto.id)} 
+                    class="mt-auto inline-block px-4 py-2 bg-[#1E2A3C] text-white font-semibold rounded-lg hover:bg-[#2a3a4f] transition-all duration-300 text-center"
+                  >
+                    Ver detalles
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+		</main>
+		<Footer />
+	</body>
+</html>

@@ -1,0 +1,234 @@
+---
+/**
+ * Componente de galería de productos con manejo optimizado de imágenes
+ * Incluye etiquetas "próximamente" con posicionamiento correcto
+ * Soluciona problemas de superposición y diseño responsive
+ */
+import OptimizedImage from './OptimizedImage.astro';
+import ComingSoonBadge from './ComingSoonBadge.astro';
+
+interface Product {
+  id: string;
+  name: string;
+  image: string;
+  isComingSoon?: boolean;
+  comingSoonText?: string;
+  description?: string;
+  price?: number | string;
+  category?: string;
+  badge?: {
+    text: string;
+    color?: string;
+    backgroundColor?: string;
+  };
+}
+
+interface Props {
+  products: Product[];
+  title?: string;
+  subtitle?: string;
+  columns?: number;
+  showPrice?: boolean;
+  showCategory?: boolean;
+  aspectRatio?: string;
+  className?: string;
+  cardClassName?: string;
+  imageClassName?: string;
+}
+
+const { 
+  products = [], 
+  title = "Nuestros Productos",
+  subtitle,
+  columns = 3,
+  showPrice = false,
+  showCategory = false,
+  aspectRatio = '4/3',
+  className = '',
+  cardClassName = '',
+  imageClassName = ''
+} = Astro.props;
+
+// Determinar la clase de columnas basada en el número especificado
+const gridClass = `grid-cols-1 sm:grid-cols-2 ${
+  columns === 3 ? 'lg:grid-cols-3' : 
+  columns === 4 ? 'lg:grid-cols-4' : 
+  columns === 2 ? 'lg:grid-cols-2' :
+  'lg:grid-cols-3'
+}`;
+---
+
+<section class={`product-gallery py-12 ${className}`}>
+  {title && <h2 class="text-2xl font-bold text-[#1E2A3C] mb-4 text-center">{title}</h2>}
+  {subtitle && <p class="text-[#6c7983] text-center mb-8">{subtitle}</p>}
+  
+  <div class={`grid ${gridClass} gap-6`}>
+    {products.map(product => (
+      <div class={`product-card bg-white rounded-lg overflow-hidden shadow-lg transition-all hover:shadow-xl hover:translate-y-[-4px] relative ${cardClassName}`}>
+        {/* Badge genérico (descuento, nuevo, etc.) */}
+        {product.badge && (
+          <div class="absolute top-2 left-2 z-20 bg-[#1E2A3C] text-white text-xs font-medium px-2 py-1 rounded-md shadow-md" style={product.badge.backgroundColor ? `background-color: ${product.badge.backgroundColor}; color: ${product.badge.color || 'white'};` : ''}>
+            {product.badge.text}
+          </div>
+        )}
+        
+        {/* Contenedor de imagen con aspect ratio controlado */}
+        <div class={`product-image-container relative overflow-hidden ${imageClassName}`} style={`aspect-ratio: ${aspectRatio};`}>
+          <OptimizedImage
+            src={product.image}
+            alt={product.name}
+            class="w-full h-full"
+            objectFit="cover"
+            fallbackSrc="/images/placeholder.jpg"
+          />
+          
+          {/* Etiqueta de próximamente con posicionamiento mejorado */}
+          {product.isComingSoon && (
+            <div class="coming-soon-overlay absolute inset-0 bg-[#1E2A3C]/70 flex items-center justify-center z-10">
+              <ComingSoonBadge 
+                text={product.comingSoonText || "Próximamente"}
+                position="center"
+                size="md"
+                backgroundColor="#D42C17"
+              />
+            </div>
+          )}
+        </div>
+        
+        <div class="product-info p-4">
+          {/* Categoría del producto */}
+          {showCategory && product.category && (
+            <div class="product-category text-xs text-[#6c7983] mb-1 uppercase tracking-wider">
+              {product.category}
+            </div>
+          )}
+          
+          {/* Nombre del producto */}
+          <h3 class="product-title text-lg font-semibold text-[#1E2A3C] mb-2 line-clamp-1">{product.name}</h3>
+          
+          {/* Precio del producto */}
+          {showPrice && product.price && (
+            <div class="product-price text-[#D42C17] font-medium mb-2">
+              {typeof product.price === 'number' ? `$${product.price.toFixed(2)}` : product.price}
+            </div>
+          )}
+          
+          {/* Descripción del producto */}
+          {product.description && (
+            <p class="product-description text-[#6c7983] text-sm line-clamp-2 mb-4">
+              {product.description}
+            </p>
+          )}
+          
+          {/* Botón de acción */}
+          <div class="product-actions mt-auto flex justify-end">
+            <a 
+              href={`/productos/${product.id}`} 
+              class="view-details-btn bg-[#1E2A3C] text-white px-3 py-1.5 rounded text-sm hover:bg-[#1E2A3C]/90 transition-colors"
+            >
+              Ver detalles
+            </a>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+  
+  {products.length === 0 && (
+    <div class="no-products bg-[#EDEDED]/50 rounded-lg p-8 text-center">
+      <p class="text-[#6c7983]">No hay productos disponibles en este momento.</p>
+    </div>
+  )}
+</section>
+
+<style>
+  .product-gallery {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    transition: all 0.3s ease;
+    will-change: transform, box-shadow;
+    /* Prevenir superposiciones con z-index */
+    position: relative;
+    z-index: 1;
+  }
+  
+  .product-card:hover {
+    z-index: 2;
+  }
+  
+  .product-info {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    /* Asegurar que el contenido no se desborde */
+    overflow: hidden;
+  }
+  
+  .product-image-container {
+    position: relative;
+    overflow: hidden;
+    background-color: #f8f8f8; /* Color de fondo para imágenes que no cargan */
+  }
+  
+  .coming-soon-overlay {
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    /* Asegurar que el overlay no cause problemas de layout */
+    pointer-events: none;
+  }
+  
+  .product-card:hover .coming-soon-overlay {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  
+  /* Asegurar que los textos no se desborden */
+  .line-clamp-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 1.5em; /* Altura máxima para una línea */
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 3em; /* Altura máxima para dos líneas */
+  }
+  
+  /* Optimizaciones para dispositivos móviles */
+  @media (max-width: 640px) {
+    .product-card {
+      margin-bottom: 1rem;
+    }
+    
+    .product-title {
+      font-size: 1rem;
+    }
+    
+    .product-description {
+      font-size: 0.75rem;
+    }
+  }
+  
+  /* Animaciones suaves */
+  @media (prefers-reduced-motion: no-preference) {
+    .product-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .coming-soon-overlay {
+      transition: opacity 0.3s ease;
+    }
+  }
+</style>

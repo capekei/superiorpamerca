@@ -1,0 +1,860 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../../utils/auth';
+import ImageUploader from '../../../components/ImageUploader.astro';
+
+// Verificar autenticación primero
+const isAuth = await isAuthenticated(Astro.request);
+if (!isAuth) {
+  console.log('Admin nuevo producto: Usuario no autenticado, redirigiendo a login');
+  return Astro.redirect('/admin/login');
+}
+---
+
+<AdminLayout title="Añadir Nuevo Producto">
+  <div class="admin-producto-nuevo">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-[#1E2A3C]">Añadir Nuevo Producto</h1>
+      <a href="/admin/productos" class="bg-[#1E2A3C] text-white px-4 py-2 rounded hover:bg-[#2a3a4f] transition-colors">
+        Volver a Productos
+      </a>
+    </div>
+    
+    <form id="producto-form" class="space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Información básica -->
+        <div class="space-y-4">
+          <div>
+            <label for="nombre" class="block text-sm font-medium text-[#1E2A3C] mb-1">Nombre del Producto</label>
+            <input 
+              type="text" 
+              id="nombre" 
+              name="nombre" 
+              required 
+              class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+            />
+          </div>
+          
+          <div>
+            <label for="descripcion" class="block text-sm font-medium text-[#1E2A3C] mb-1">Descripción</label>
+            <textarea 
+              id="descripcion" 
+              name="descripcion" 
+              rows="4" 
+              class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+            ></textarea>
+          </div>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="precio" class="block text-sm font-medium text-[#1E2A3C] mb-1">Precio ($)</label>
+              <input 
+                type="number" 
+                id="precio" 
+                name="precio" 
+                step="0.01" 
+                min="0" 
+                required 
+                class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label for="stock" class="block text-sm font-medium text-[#1E2A3C] mb-1">Stock</label>
+              <input 
+                type="number" 
+                id="stock" 
+                name="stock" 
+                min="0" 
+                required 
+                class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label for="categorias" class="block text-sm font-medium text-[#1E2A3C] mb-1">Categorías</label>
+            <input 
+              type="text" 
+              id="categorias" 
+              name="categorias" 
+              placeholder="Separadas por comas (ej: destacados, nuevos)" 
+              class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+            />
+            <p class="text-xs text-[#6c7983] mt-1">Separa las categorías con comas</p>
+          </div>
+          
+          <div class="flex items-center space-x-2">
+            <input 
+              type="checkbox" 
+              id="destacado" 
+              name="destacado" 
+              class="h-4 w-4 text-[#1E2A3C] focus:ring-[#1E2A3C] border-[#EDEDED] rounded"
+            />
+            <label for="destacado" class="text-sm font-medium text-[#1E2A3C]">Marcar como destacado</label>
+          </div>
+        </div>
+        
+        <!-- Imágenes y características adicionales -->
+        <div class="space-y-4">
+          <!-- Nuevo componente de carga de imágenes -->
+          <ImageUploader 
+            id="imagenes" 
+            name="imagenes" 
+            label="Imágenes del Producto" 
+            maxFiles="5" 
+            maxSize="10" 
+            required={true}
+            helpText="Formatos permitidos: JPG, PNG, WEBP, GIF. Máximo 5 imágenes de hasta 10MB cada una."
+          />
+            <div class="flex space-x-4">
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="tipo-imagen" 
+                  value="local" 
+                  checked 
+                  class="h-4 w-4 text-[#1E2A3C] focus:ring-[#1E2A3C] border-[#EDEDED]"
+                />
+                <span class="text-sm text-[#1E2A3C]">Subir imagen</span>
+              </label>
+              
+              <label class="flex items-center space-x-2 cursor-pointer">
+                <input 
+                  type="radio" 
+                  name="tipo-imagen" 
+                  value="url" 
+                  class="h-4 w-4 text-[#1E2A3C] focus:ring-[#1E2A3C] border-[#EDEDED]"
+                />
+                <span class="text-sm text-[#1E2A3C]">Imagen por URL</span>
+              </label>
+            </div>
+            
+            <!-- Opción de subida de archivo local -->
+            <div id="opcion-archivo" class="space-y-2">
+              <div class="flex items-end space-x-2">
+                <div class="flex-grow">
+                  <input 
+                    type="file" 
+                    id="imagenes" 
+                    name="imagenes" 
+                    multiple 
+                    accept="image/*" 
+                    class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+                  />
+                </div>
+                <button 
+                  type="button" 
+                  id="btn-cargar-ahora" 
+                  class="px-4 py-2 bg-[#1E2A3C] text-white rounded-md hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                  disabled
+                >
+                  <span id="btn-cargar-texto">Cargar ahora</span>
+                  <span id="btn-cargar-spinner" class="hidden">
+                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </span>
+                </button>
+              </div>
+              <p class="text-xs text-[#6c7983]">Puedes seleccionar múltiples imágenes</p>
+            </div>
+            
+            <!-- Opción de imagen por URL -->
+            <div id="opcion-url" class="space-y-2 hidden">
+              <div class="flex items-end space-x-2">
+                <div class="flex-grow">
+                  <input 
+                    type="url" 
+                    id="imagen-url" 
+                    name="imagen-url" 
+                    placeholder="https://ejemplo.com/imagen.jpg" 
+                    class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+                  />
+                </div>
+                <button 
+                  type="button" 
+                  id="btn-cargar-url" 
+                  class="px-4 py-2 bg-[#1E2A3C] text-white rounded-md hover:bg-opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled
+                >
+                  Cargar URL
+                </button>
+              </div>
+              <p class="text-xs text-[#6c7983]">Ingresa la URL completa de la imagen (debe comenzar con http:// o https://)</p>
+            </div>
+          </div>
+          
+          <div id="preview-imagenes" class="grid grid-cols-2 gap-4 mt-2 hidden">
+            <!-- Las imágenes seleccionadas se mostrarán aquí -->
+          </div>
+          
+          <!-- Lista de imágenes cargadas -->
+          <div id="imagenes-cargadas" class="space-y-2 mt-4 hidden">
+            <h3 class="text-sm font-medium text-[#1E2A3C]">Imágenes cargadas:</h3>
+            <ul id="lista-imagenes" class="space-y-2 text-sm">
+              <!-- Aquí se mostrarán las imágenes cargadas -->
+            </ul>
+          </div>
+          
+          <div>
+            <label for="caracteristicas" class="block text-sm font-medium text-[#1E2A3C] mb-1">Características</label>
+            <textarea 
+              id="caracteristicas" 
+              name="caracteristicas" 
+              rows="4" 
+              placeholder="Una característica por línea" 
+              class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+            ></textarea>
+            <p class="text-xs text-[#6c7983] mt-1">Escribe una característica por línea</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="pt-4 border-t border-[#EDEDED] flex justify-end space-x-4">
+        <a 
+          href="/admin/productos" 
+          class="px-6 py-2 border border-[#EDEDED] rounded-md text-[#6c7983] hover:bg-[#EDEDED]/50 transition-colors"
+        >
+          Cancelar
+        </a>
+        <button 
+          id="btn-guardar"
+          type="submit" 
+          class="px-6 py-2 bg-[#1E2A3C] text-white rounded-md hover:bg-[#2a3a4f] transition-colors"
+        >
+          Guardar Producto
+        </button>
+      </div>
+    </form>
+  </div>
+</AdminLayout>
+
+<script>
+  // Script para manejar el formulario de nuevo producto
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('producto-form');
+    const btnCargarAhora = document.getElementById('btn-cargar-ahora');
+    const btnCargarUrl = document.getElementById('btn-cargar-url');
+    const opcionArchivo = document.getElementById('opcion-archivo');
+    const opcionUrl = document.getElementById('opcion-url');
+    const imagenesRadios = document.querySelectorAll('input[name="tipo-imagen"]');
+    const imagenesCargadas = document.getElementById('imagenes-cargadas');
+    const listaImagenes = document.getElementById('lista-imagenes');
+    const previewImagenes = document.getElementById('preview-imagenes');
+    const inputImagenUrl = document.getElementById('imagen-url');
+    
+    // Array para almacenar las imágenes cargadas
+    let imagenesProducto = [];
+    
+    // Generar ID único para el producto
+    const productoId = 'producto-' + Date.now().toString(36);
+    
+    // Cambiar entre opciones de carga de imágenes
+    imagenesRadios.forEach(radio => {
+      radio.addEventListener('change', (e) => {
+        const tipo = (e.target as HTMLInputElement).value;
+        
+        if (tipo === 'local') {
+          opcionArchivo.classList.remove('hidden');
+          opcionUrl.classList.add('hidden');
+        } else if (tipo === 'url') {
+          opcionArchivo.classList.add('hidden');
+          opcionUrl.classList.remove('hidden');
+        }
+      });
+    });
+    
+    // Habilitar/deshabilitar botón de carga según selección de archivos
+    // El manejo de imágenes ahora se realiza en el componente ImageUploader
+    
+    // Habilitar/deshabilitar botón de cargar URL según el contenido del input
+    inputImagenUrl?.addEventListener('input', (e) => {
+      const url = (e.target as HTMLInputElement).value.trim();
+      btnCargarUrl.disabled = !url;
+    });
+    
+    // Función para mostrar vista previa de imágenes (se llamará desde el componente ImageUploader)
+    function showImagePreviews(previewImagenes, files) {
+      if (!previewImagenes) return;
+      
+      previewImagenes.innerHTML = '';
+      
+      if (!files || files.length === 0) {
+        previewImagenes.classList.add('hidden');
+        return;
+      }
+      
+      previewImagenes.classList.remove('hidden');
+      
+      // Crear contenedor de carga
+      const loadingContainer = document.createElement('div');
+      loadingContainer.className = 'col-span-2 flex items-center justify-center p-4 bg-[#EDEDED]/10 rounded-md';
+      loadingContainer.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <svg class="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span>Generando vistas previas...</span>
+        </div>
+      `;
+      previewImagenes.appendChild(loadingContainer);
+    
+      // Contador para seguir el progreso de carga
+      let loadedCount = 0;
+      const totalFiles = files.length;
+      
+      // Función para actualizar la vista previa cuando todas las imágenes estén cargadas
+      const updatePreview = () => {
+        if (loadedCount === totalFiles) {
+          previewImagenes.removeChild(loadingContainer);
+        }
+      };
+      
+      Array.from(files).forEach((file, index) => {
+        // Validar tipo de archivo
+        if (!file.type.startsWith('image/')) {
+          loadedCount++;
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'relative bg-red-50 p-2 rounded-md';
+          errorDiv.innerHTML = `
+            <p class="text-red-500 text-sm">El archivo "${file.name}" no es una imagen válida</p>
+          `;
+          previewImagenes.appendChild(errorDiv);
+          updatePreview();
+          return;
+        }
+        
+        const reader = new FileReader();
+        
+        reader.onload = (e) => {
+          loadedCount++;
+          
+          const div = document.createElement('div');
+          div.className = 'relative group';
+          
+          const img = document.createElement('img');
+          img.src = e.target?.result as string;
+          img.alt = `Vista previa ${index + 1}`;
+          img.className = 'w-full h-32 object-cover rounded-md border border-[#EDEDED]';
+          
+          // Añadir información del archivo
+          const infoDiv = document.createElement('div');
+          infoDiv.className = 'absolute bottom-0 left-0 right-0 bg-black/70 text-white text-xs p-1 opacity-0 group-hover:opacity-100 transition-opacity';
+          infoDiv.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+          
+          div.appendChild(img);
+          div.appendChild(infoDiv);
+          previewImagenes.appendChild(div);
+          
+          updatePreview();
+        };
+        
+        reader.onerror = () => {
+          loadedCount++;
+          const errorDiv = document.createElement('div');
+          errorDiv.className = 'relative bg-red-50 p-2 rounded-md';
+          errorDiv.innerHTML = `
+            <p class="text-red-500 text-sm">Error al leer "${file.name}"</p>
+          `;
+          previewImagenes.appendChild(errorDiv);
+          updatePreview();
+        };
+        
+        reader.readAsDataURL(file);
+      });
+    }
+    
+    // Habilitar/deshabilitar botón de carga de URL
+    inputImagenUrl?.addEventListener('input', (e) => {
+      if (!btnCargarUrl) return;
+      
+      const url = (e.target as HTMLInputElement).value.trim();
+      btnCargarUrl.disabled = !url || !url.startsWith('http');
+    });
+    
+    // Cargar imágenes locales
+    // Función para cargar imágenes desde el componente ImageUploader
+    const uploadImages = async function(files) {
+      if (!files || files.length === 0) return [];
+      
+      // Referencias a elementos UI
+      const btnTexto = document.getElementById('btn-cargar-texto');
+      const btnSpinner = document.getElementById('btn-cargar-spinner');
+      
+      // Crear FormData
+      const formData = new FormData();
+      formData.append('productId', productoId);
+      
+      // Añadir archivos
+      Array.from(files).forEach(file => {
+        formData.append('images', file);
+      });
+      
+      // Función para actualizar el estado del botón
+      const updateButtonState = (isLoading: boolean) => {
+        if (!btnCargarAhora || !btnTexto || !btnSpinner) return;
+        
+        btnCargarAhora.disabled = isLoading;
+        btnTexto.textContent = isLoading ? 'Cargando...' : 'Cargar ahora';
+        
+        if (isLoading) {
+          btnSpinner.classList.remove('hidden');
+        } else {
+          btnSpinner.classList.add('hidden');
+        }
+      };
+      
+      // Establecer un timeout para detectar si la carga tarda demasiado
+      let timeoutId: number | null = null;
+      // Declarar result fuera del bloque try para poder usarlo en el return
+      let result: any = { imageUrls: [] };
+      
+      try {
+        // Actualizar estado del botón
+        updateButtonState(true);
+        
+        // Establecer timeout de 30 segundos
+        timeoutId = window.setTimeout(() => {
+          console.warn('La carga de imágenes está tardando demasiado tiempo');
+          // No cancelamos la operación, solo notificamos al usuario
+          alert('La carga de imágenes está tardando más de lo esperado. Por favor, espere...');
+        }, 30000);
+        
+        // Enviar al servidor
+        const response = await fetch('/api/productos/upload', {
+          method: 'POST',
+          body: formData
+        });
+        
+        // Limpiar timeout
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+          timeoutId = null;
+        }
+        
+        // Obtener la respuesta JSON independientemente del código de estado
+        result = await response.json();
+        
+        // Mostrar notificación con resumen de la operación
+        const mostrarNotificacion = (tipo, mensaje) => {
+          // Aquí podríamos implementar un sistema de notificaciones más elegante
+          // Por ahora usamos alert para simplificar
+          if (tipo === 'error') {
+            alert(`Error: ${mensaje}`);
+          } else if (tipo === 'warning') {
+            alert(`Advertencia: ${mensaje}`);
+          } else {
+            alert(mensaje);
+          }
+        };
+        
+        // Procesar la respuesta según su estado
+        if (result.success) {
+          // Añadir imágenes exitosas al array
+          result.imageUrls.forEach(url => {
+            imagenesProducto.push({
+              url,
+              tipo: 'local',
+              principal: imagenesProducto.length === 0 // Primera imagen como principal
+            });
+          });
+          
+          // Limpiar input y vista previa
+          (inputImagenes as HTMLInputElement).value = '';
+          previewImagenes.innerHTML = '';
+          previewImagenes.classList.add('hidden');
+          
+          // Mostrar imágenes cargadas
+          actualizarListaImagenes();
+          
+          // Determinar el tipo de mensaje según el resultado
+          if (result.status === 'partial') {
+            // Éxito parcial: algunas imágenes se cargaron, otras fallaron
+            mostrarNotificacion('warning', `${result.summary.successful} imágenes cargadas con éxito, pero ${result.summary.failed} fallaron. Revise los detalles para más información.`);
+            
+            // Mostrar detalles de errores en la consola para depuración
+            console.warn('Detalles de carga parcial:', result.details);
+            console.warn('Errores:', result.errors);
+          } else {
+            // Éxito total
+            mostrarNotificacion('success', `${result.imageUrls.length} imágenes cargadas con éxito`);
+          }
+        } else {
+          // Error: ninguna imagen se cargó correctamente
+          let errorMessage = result.error || 'No se pudieron cargar las imágenes';
+          
+          // Añadir detalles de errores si están disponibles
+          if (result.errors && Array.isArray(result.errors) && result.errors.length > 0) {
+            errorMessage += '\n\nDetalles:\n' + result.errors.join('\n');
+          }
+          
+          mostrarNotificacion('error', errorMessage);
+          
+          // Mostrar detalles completos en la consola para depuración
+          console.error('Error en carga de imágenes:', result);
+        }
+      } catch (error) {
+        console.error('Error al cargar imágenes:', error);
+        alert(`Error al cargar imágenes: ${error.message || 'Error desconocido'}`);
+      } finally {
+        // Limpiar timeout si aún existe
+        if (timeoutId !== null) {
+          clearTimeout(timeoutId);
+        }
+        
+        // Restaurar estado del botón
+        updateButtonState(false);
+      }
+      
+      // Retornar las URLs de las imágenes cargadas
+      return result?.imageUrls || [];
+    }
+    
+    // Función para cargar imagen por URL (ahora integrada en el formulario principal)
+    const uploadImageFromUrl = async function(url) {
+      if (!url) return null;
+      url = url.trim();
+      if (!url) return;
+      
+      // Validar formato de URL
+      try {
+        new URL(url); // Verifica si es una URL válida
+      } catch (e) {
+        alert('Por favor ingresa una URL válida (debe comenzar con http:// o https://)');
+        return;
+      }
+      
+      try {
+        // Referencias a elementos UI para mejor manejo de errores
+        const btnUrl = document.getElementById('btn-cargar-url');
+        if (!btnUrl) return;
+        
+        // Mostrar estado de carga
+        btnUrl.disabled = true;
+        btnUrl.textContent = 'Cargando...';
+        btnUrl.classList.add('relative');
+        
+        // Añadir un indicador de carga visual
+        const loadingIndicator = document.createElement('span');
+        loadingIndicator.className = 'absolute inset-0 flex items-center justify-center bg-[#1E2A3C]/80 rounded-md';
+        loadingIndicator.innerHTML = `
+          <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        `;
+        btnUrl.appendChild(loadingIndicator);
+        
+        // Enviar al servidor
+        const response = await fetch('/api/productos/upload-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            imageUrl: url,
+            productId: productoId || 'temp_' + Date.now()
+          })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Añadir imagen al array
+          imagenesProducto.push({
+            url: result.imageUrl,
+            tipo: 'url',
+            principal: imagenesProducto.length === 0 // Primera imagen como principal
+          });
+          
+          // Limpiar input
+          if (inputImagenUrl) {
+            inputImagenUrl.value = '';
+            // Desactivar el botón hasta que se ingrese texto nuevamente
+            btnUrl.disabled = true;
+          }
+          
+          // Mostrar imágenes cargadas
+          actualizarListaImagenes();
+          
+          // Mostrar mensaje de éxito
+          const successMessage = document.createElement('div');
+          successMessage.className = 'bg-green-50 border-l-4 border-green-500 p-4 mb-4 text-sm text-green-700';
+          successMessage.innerHTML = '<p>Imagen URL registrada con éxito</p>';
+          
+          const container = document.getElementById('opcion-url');
+          container?.insertAdjacentElement('beforebegin', successMessage);
+          
+          // Remover mensaje después de 3 segundos
+          setTimeout(() => {
+            successMessage.remove();
+          }, 3000);
+        } else {
+          console.error('Error al cargar URL:', result.error);
+          alert(`Error: ${result.error || 'No se pudo registrar la URL de la imagen'}`);
+        }
+      } catch (error) {
+        console.error('Error al registrar URL de imagen:', error);
+        alert('Error al registrar URL de imagen. Consulta la consola para más detalles.');
+      } finally {
+        // Restaurar estado del botón
+        const btnUrl = document.getElementById('btn-cargar-url');
+        if (btnUrl) {
+          btnUrl.disabled = false;
+          btnUrl.textContent = 'Cargar URL';
+          // Eliminar cualquier contenido adicional (como el indicador de carga)
+          while (btnUrl.firstChild) {
+            if (btnUrl.firstChild.nodeType === 3) { // Nodo de texto
+              btnUrl.firstChild.nodeValue = 'Cargar URL';
+              break;
+            } else {
+              btnUrl.removeChild(btnUrl.firstChild);
+            }
+          }
+        }
+      }
+    };
+    
+    // Event listener para el botón de cargar URL
+    btnCargarUrl?.addEventListener('click', function() {
+      const url = inputImagenUrl?.value.trim();
+      if (url) {
+        uploadImageFromUrl(url);
+      }
+    });
+    
+    // También permitir enviar con Enter en el campo de URL
+    inputImagenUrl?.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const url = this.value.trim();
+        if (url && btnCargarUrl && !btnCargarUrl.disabled) {
+          uploadImageFromUrl(url);
+        }
+      }
+    });
+    
+    // Función para actualizar la lista de imágenes cargadas
+    function actualizarListaImagenes() {
+      if (!listaImagenes || !imagenesCargadas) return;
+      
+      // Mostrar contenedor si hay imágenes
+      if (imagenesProducto.length > 0) {
+        imagenesCargadas.classList.remove('hidden');
+      } else {
+        imagenesCargadas.classList.add('hidden');
+        return;
+      }
+      
+      // Limpiar lista
+      listaImagenes.innerHTML = '';
+      
+      // Añadir cada imagen
+      imagenesProducto.forEach((img, index) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between';
+        
+        // Contenedor de información
+        const infoDiv = document.createElement('div');
+        infoDiv.className = 'flex items-center space-x-2';
+        
+        // Miniatura
+        const thumb = document.createElement('img');
+        thumb.src = img.url;
+        thumb.alt = `Imagen ${index + 1}`;
+        thumb.className = 'w-10 h-10 object-cover rounded border border-[#EDEDED]';
+        
+        // Texto
+        const texto = document.createElement('span');
+        texto.textContent = `Imagen ${index + 1} (${img.tipo === 'local' ? 'Archivo local' : 'URL externa'})${img.principal ? ' - Principal' : ''}`;
+        texto.className = 'text-sm text-[#1E2A3C]';
+        
+        // Botones de acción
+        const botonesDiv = document.createElement('div');
+        botonesDiv.className = 'flex space-x-2';
+        
+        // Botón principal
+        const btnPrincipal = document.createElement('button');
+        btnPrincipal.type = 'button';
+        btnPrincipal.className = `text-xs px-2 py-1 rounded ${img.principal ? 'bg-[#1E2A3C] text-white' : 'bg-[#EDEDED] text-[#1E2A3C]'}`;
+        btnPrincipal.textContent = img.principal ? 'Principal' : 'Hacer principal';
+        btnPrincipal.disabled = img.principal;
+        btnPrincipal.addEventListener('click', () => {
+          // Marcar como principal
+          imagenesProducto.forEach(i => i.principal = false);
+          img.principal = true;
+          actualizarListaImagenes();
+        });
+        
+        // Botón eliminar
+        const btnEliminar = document.createElement('button');
+        btnEliminar.type = 'button';
+        btnEliminar.className = 'text-xs px-2 py-1 bg-red-100 text-red-700 rounded';
+        btnEliminar.textContent = 'Eliminar';
+        btnEliminar.addEventListener('click', () => {
+          // Eliminar imagen
+          imagenesProducto = imagenesProducto.filter((_, i) => i !== index);
+          
+          // Si eliminamos la principal y hay más imágenes, hacer la primera principal
+          if (img.principal && imagenesProducto.length > 0) {
+            imagenesProducto[0].principal = true;
+          }
+          
+          actualizarListaImagenes();
+        });
+        
+        // Construir el elemento
+        infoDiv.appendChild(thumb);
+        infoDiv.appendChild(texto);
+        
+        botonesDiv.appendChild(btnPrincipal);
+        botonesDiv.appendChild(btnEliminar);
+        
+        li.appendChild(infoDiv);
+        li.appendChild(botonesDiv);
+        
+        listaImagenes.appendChild(li);
+      });
+    }
+    
+    // Manejar envío del formulario
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      // Mostrar indicador de carga
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalBtnText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Guardando...
+      `;
+      
+      // Obtener datos del formulario
+      const nombre = (document.getElementById('nombre') as HTMLInputElement).value;
+      const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement).value;
+      const precio = (document.getElementById('precio') as HTMLInputElement).value;
+      const stock = (document.getElementById('stock') as HTMLInputElement).value;
+      const categoriasInput = (document.getElementById('categorias') as HTMLInputElement).value;
+      const destacado = (document.getElementById('destacado') as HTMLInputElement).checked;
+      const caracteristicasInput = (document.getElementById('caracteristicas') as HTMLTextAreaElement).value;
+      
+      // Procesar categorías (separadas por comas)
+      const categorias = categoriasInput
+        .split(',')
+        .map(cat => cat.trim())
+        .filter(cat => cat.length > 0);
+      
+      // Procesar características (una por línea)
+      const caracteristicas = caracteristicasInput
+        .split('\n')
+        .map(car => car.trim())
+        .filter(car => car.length > 0);
+      
+      // Generar un ID único para el producto
+      const productoId = 'producto-' + Date.now().toString(36);
+      
+      // Construir objeto de nuevo producto
+      const nuevoProducto = {
+        id: productoId,
+        nombre,
+        descripcion,
+        precio: parseFloat(precio),
+        stock: parseInt(stock),
+        categorias,
+        caracteristicas,
+        destacado,
+        imagenes: imagenesProducto // Incluir las imágenes cargadas
+      };
+      
+      try {
+        // Mostrar indicador de carga
+        const btnGuardar = document.getElementById('btn-guardar');
+        if (btnGuardar) {
+          btnGuardar.textContent = 'Guardando...';
+          btnGuardar.disabled = true;
+        }
+        
+        // Llamada a la API para crear el producto
+        const response = await fetch('/api/productos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(nuevoProducto)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al crear el producto');
+        }
+        
+        const result = await response.json();
+        console.log('Producto creado:', result);
+        
+        // Subir imágenes si hay seleccionadas
+        const files = (document.getElementById('imagenes') as HTMLInputElement).files;
+        if (files && files.length > 0) {
+          const formData = new FormData();
+          formData.append('productId', result.producto.id);
+          
+          for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
+          }
+          
+          const uploadResponse = await fetch('/api/productos/upload', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!uploadResponse.ok) {
+            console.warn('Las imágenes no pudieron ser subidas, pero el producto fue creado');
+          }
+        }
+        
+        // Mostrar mensaje de éxito
+        alert('Producto creado con éxito');
+        
+        // Redirigir a la lista de productos
+        window.location.href = '/admin/productos';
+      } catch (error) {
+        console.error('Error al crear el producto:', error);
+        alert('Error: ' + (error.message || 'Ocurrió un error al crear el producto'));
+        
+        // Restaurar botón
+        const btnGuardar = document.getElementById('btn-guardar');
+        if (btnGuardar) {
+          btnGuardar.textContent = 'Guardar Producto';
+          btnGuardar.disabled = false;
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  /* Estilos para el formulario de producto */
+  #producto-form {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  /* Estilos para los botones de acción */
+  .btn-primary {
+    @apply bg-[#1E2A3C] text-white px-4 py-2 rounded hover:bg-[#2a3a4f] transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-[#EDEDED] text-[#1E2A3C] px-4 py-2 rounded hover:bg-[#EDEDED]/80 transition-colors;
+  }
+  
+  .btn-danger {
+    @apply bg-[#D42C17] text-white px-4 py-2 rounded hover:bg-[#b82413] transition-colors;
+  }
+</style>

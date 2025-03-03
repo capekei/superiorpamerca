@@ -1,0 +1,31 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+import { isAuthenticated, getCurrentUser } from '../utils/auth';
+
+const { title = 'Panel de Administración', description = SITE_DESCRIPTION } = Astro.props;
+
+// Verificar autenticación directamente
+console.log('ProtectedLayout: Verificando autenticación...');
+const isAuth = await isAuthenticated(Astro.request);
+
+// Si no está autenticado, redirigir inmediatamente
+if (!isAuth) {
+  console.log('ProtectedLayout: Usuario no autenticado, redirigiendo a /admin/login');
+  return Astro.redirect('/admin/login');
+}
+
+// Si llegamos aquí, el usuario está autenticado
+console.log('ProtectedLayout: Usuario autenticado, continuando con el renderizado');
+const user = await getCurrentUser(Astro.request);
+---
+
+<!-- 
+Este layout solo verifica la autenticación y redirige si es necesario.
+No contiene elementos de UI para evitar duplicidad con AdminLayout.
+-->
+<slot />
+    
+

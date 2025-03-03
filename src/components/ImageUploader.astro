@@ -1,0 +1,350 @@
+---
+/**
+ * Componente ImageUploader para cargar imágenes con vista previa
+ * Optimizado para uso en formularios de productos
+ */
+
+interface Props {
+  id?: string;
+  name?: string;
+  label?: string;
+  maxFiles?: number;
+  maxSize?: number; // en MB
+  accept?: string;
+  required?: boolean;
+  helpText?: string;
+  class?: string;
+}
+
+const {
+  id = "image-uploader",
+  name = "images",
+  label = "Imágenes del producto",
+  maxFiles = 5,
+  maxSize = 10, // 10MB por defecto
+  accept = "image/jpeg,image/png,image/webp,image/gif",
+  required = false,
+  helpText = `Formatos permitidos: JPG, PNG, WEBP, GIF. Máximo ${maxFiles} imágenes de hasta ${maxSize}MB cada una.`,
+  class: className = ""
+} = Astro.props;
+
+// Convertir maxSize a bytes para validación JS
+const maxSizeBytes = maxSize * 1024 * 1024;
+
+// ID único para este componente
+const componentId = `image-uploader-${Math.random().toString(36).substring(2, 9)}`;
+---
+
+<div class={`image-uploader ${className}`} id={componentId}>
+  <div class="mb-4">
+    <label for={id} class="block text-sm font-medium text-[#1E2A3C] mb-1">
+      {label} {required && <span class="text-[#D42C17]">*</span>}
+    </label>
+    
+    <div class="upload-container border-2 border-dashed border-[#EDEDED] rounded-lg p-4 transition-all hover:border-[#1E2A3C]/50">
+      <!-- Área de drop y selección de archivos -->
+      <div class="upload-area flex flex-col items-center justify-center py-6 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-[#6c7983] mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        
+        <p class="text-sm text-[#1E2A3C] font-medium mb-1">
+          Arrastra y suelta imágenes aquí o
+        </p>
+        
+        <button type="button" class="select-files-btn bg-[#1E2A3C] text-white px-4 py-2 rounded-md text-sm hover:bg-[#1E2A3C]/90 transition-colors mt-2">
+          Seleccionar archivos
+        </button>
+        
+        <input
+          type="file"
+          id={id}
+          name={name}
+          accept={accept}
+          multiple={maxFiles > 1}
+          required={required}
+          class="hidden"
+          data-max-files={maxFiles}
+          data-max-size={maxSizeBytes}
+        />
+      </div>
+      
+      <p class="text-xs text-[#6c7983] mt-2 text-center">
+        {helpText}
+      </p>
+    </div>
+  </div>
+  
+  <!-- Contenedor para las vistas previas -->
+  <div class="preview-container">
+    <div class="image-previews grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 mt-4"></div>
+    
+    <!-- Contador de archivos -->
+    <div class="file-counter hidden mt-2 text-sm text-[#6c7983]">
+      <span class="files-selected">0</span> de <span class="max-files">{maxFiles}</span> imágenes seleccionadas
+    </div>
+  </div>
+  
+  <!-- Mensajes de error -->
+  <div class="error-container mt-2 hidden">
+    <p class="error-message text-sm text-[#D42C17]"></p>
+  </div>
+  
+  <!-- Barra de progreso para la carga -->
+  <div class="upload-progress mt-4 hidden">
+    <div class="flex justify-between text-xs text-[#6c7983] mb-1">
+      <span>Subiendo imágenes...</span>
+      <span class="progress-percentage">0%</span>
+    </div>
+    <div class="progress-bar-container bg-[#EDEDED] rounded-full h-2 overflow-hidden">
+      <div class="progress-bar bg-[#1E2A3C] h-full w-0 transition-all"></div>
+    </div>
+  </div>
+</div>
+
+<script define:vars={{ componentId, maxFiles, maxSizeBytes }}>
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById(componentId);
+    if (!container) return;
+    
+    // Referencias a elementos
+    const fileInput = container.querySelector('input[type="file"]');
+    const uploadArea = container.querySelector('.upload-area');
+    const selectFilesBtn = container.querySelector('.select-files-btn');
+    const previewsContainer = container.querySelector('.image-previews');
+    const fileCounter = container.querySelector('.file-counter');
+    const filesSelected = container.querySelector('.files-selected');
+    const errorContainer = container.querySelector('.error-container');
+    const errorMessage = container.querySelector('.error-message');
+    const progressContainer = container.querySelector('.upload-progress');
+    const progressBar = container.querySelector('.progress-bar');
+    const progressPercentage = container.querySelector('.progress-percentage');
+    
+    // Función para mostrar error
+    const showError = (message) => {
+      errorMessage.textContent = message;
+      errorContainer.classList.remove('hidden');
+      
+      // Ocultar error después de 5 segundos
+      setTimeout(() => {
+        errorContainer.classList.add('hidden');
+      }, 5000);
+    };
+    
+    // Función para actualizar contador
+    const updateCounter = (count) => {
+      if (filesSelected) {
+        filesSelected.textContent = count;
+        fileCounter.classList.toggle('hidden', count === 0);
+      }
+    };
+    
+    // Función para validar archivos
+    const validateFiles = (files) => {
+      if (files.length > maxFiles) {
+        showError(`Máximo ${maxFiles} imágenes permitidas.`);
+        return false;
+      }
+      
+      for (const file of files) {
+        // Validar tipo de archivo
+        if (!file.type.match('image.*')) {
+          showError(`El archivo "${file.name}" no es una imagen válida.`);
+          return false;
+        }
+        
+        // Validar tamaño
+        if (file.size > maxSizeBytes) {
+          showError(`El archivo "${file.name}" excede el tamaño máximo de ${maxSizeBytes / (1024 * 1024)}MB.`);
+          return false;
+        }
+      }
+      
+      return true;
+    };
+    
+    // Función para crear vista previa
+    const createPreview = (file) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        const preview = document.createElement('div');
+        preview.className = 'preview-item relative bg-white rounded-lg overflow-hidden shadow-md';
+        
+        // Contenedor con aspect-ratio
+        const imageContainer = document.createElement('div');
+        imageContainer.className = 'aspect-square relative';
+        
+        // Imagen
+        const img = document.createElement('img');
+        img.src = e.target.result;
+        img.className = 'w-full h-full object-cover';
+        img.alt = file.name;
+        
+        // Botón para eliminar
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'remove-btn absolute top-1 right-1 bg-[#D42C17] text-white rounded-full w-6 h-6 flex items-center justify-center shadow-md hover:bg-[#b82413] transition-colors';
+        removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>';
+        removeBtn.type = 'button';
+        removeBtn.setAttribute('aria-label', 'Eliminar imagen');
+        
+        // Etiqueta con el nombre del archivo
+        const fileLabel = document.createElement('div');
+        fileLabel.className = 'file-name truncate text-xs p-1 text-center bg-[#EDEDED] text-[#1E2A3C]';
+        fileLabel.textContent = file.name.length > 20 ? file.name.substring(0, 17) + '...' : file.name;
+        
+        // Agregar elementos al DOM
+        imageContainer.appendChild(img);
+        imageContainer.appendChild(removeBtn);
+        preview.appendChild(imageContainer);
+        preview.appendChild(fileLabel);
+        previewsContainer.appendChild(preview);
+        
+        // Evento para eliminar
+        removeBtn.addEventListener('click', () => {
+          preview.remove();
+          
+          // Actualizar contador
+          const currentCount = previewsContainer.querySelectorAll('.preview-item').length;
+          updateCounter(currentCount);
+          
+          // Recrear FileList sin este archivo
+          updateFileInput();
+        });
+      };
+      
+      reader.readAsDataURL(file);
+    };
+    
+    // Función para actualizar el input de archivos basado en las previsualizaciones
+    const updateFileInput = () => {
+      // Esta función es compleja y requiere una implementación específica
+      // para cada caso de uso, ya que FileList es inmutable
+      console.log('Actualización de FileList pendiente de implementación específica');
+    };
+    
+    // Función para manejar la selección de archivos
+    const handleFiles = (files) => {
+      if (!validateFiles(files)) return;
+      
+      // Limpiar previsualizaciones existentes
+      previewsContainer.innerHTML = '';
+      
+      // Crear previsualizaciones
+      Array.from(files).forEach(file => {
+        createPreview(file);
+      });
+      
+      // Actualizar contador
+      updateCounter(files.length);
+    };
+    
+    // Eventos para selección de archivos
+    if (fileInput) {
+      fileInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+      });
+    }
+    
+    // Evento para el botón de selección
+    if (selectFilesBtn) {
+      selectFilesBtn.addEventListener('click', () => {
+        fileInput.click();
+      });
+    }
+    
+    // Eventos para drag & drop
+    if (uploadArea) {
+      ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+        });
+      });
+      
+      // Estilos para drag over
+      ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+          uploadArea.parentElement.classList.add('border-[#1E2A3C]', 'bg-[#EDEDED]/30');
+        });
+      });
+      
+      ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea.addEventListener(eventName, () => {
+          uploadArea.parentElement.classList.remove('border-[#1E2A3C]', 'bg-[#EDEDED]/30');
+        });
+      });
+      
+      // Manejar drop
+      uploadArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        handleFiles(files);
+      });
+    }
+    
+    // Simular progreso de carga (para demostración)
+    window.simulateUploadProgress = (duration = 3000) => {
+      progressContainer.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      progressPercentage.textContent = '0%';
+      
+      let progress = 0;
+      const interval = 100;
+      const increment = 100 / (duration / interval);
+      
+      const updateProgress = setInterval(() => {
+        progress += increment;
+        const currentProgress = Math.min(Math.round(progress), 100);
+        
+        progressBar.style.width = `${currentProgress}%`;
+        progressPercentage.textContent = `${currentProgress}%`;
+        
+        if (currentProgress >= 100) {
+          clearInterval(updateProgress);
+          
+          // Ocultar después de completar
+          setTimeout(() => {
+            progressContainer.classList.add('hidden');
+          }, 1000);
+        }
+      }, interval);
+    };
+  });
+</script>
+
+<style>
+  .upload-container {
+    transition: all 0.2s ease;
+  }
+  
+  .upload-area {
+    transition: background-color 0.2s ease;
+  }
+  
+  .preview-item {
+    transition: transform 0.2s ease;
+  }
+  
+  .preview-item:hover {
+    transform: translateY(-2px);
+  }
+  
+  .remove-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+  }
+  
+  .preview-item:hover .remove-btn {
+    opacity: 1;
+  }
+  
+  .remove-btn:hover {
+    transform: rotate(90deg);
+  }
+  
+  .progress-bar {
+    transition: width 0.3s ease;
+  }
+</style>

@@ -1,0 +1,124 @@
+---
+import BaseHead from '../components/BaseHead.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
+
+const { title = 'Panel de Administración', description = SITE_DESCRIPTION, activeLink = '' } = Astro.props;
+
+// Este layout ahora maneja la autenticación directamente
+console.log('AdminLayout: Renderizando layout administrativo');
+
+// Determinar si estamos en la página de login
+const isInLoginPage = Astro.url.pathname === '/admin/login';
+const isAuth = !isInLoginPage; // Si no estamos en login, asumimos que estamos autenticados (la verificación real se hace en cada página)
+
+// Función para determinar si un enlace está activo
+const isActive = (link: string) => activeLink === link;
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`${title} | ${SITE_TITLE}`} description={description} />
+	</head>
+	<body class="min-h-screen flex flex-col bg-white">
+		<main class="flex-grow">
+      <div class="container mx-auto px-4 py-8">
+        <div class="flex flex-wrap">
+          <!-- Sidebar de navegación mejorado con estado activo -->          
+          {isAuth && (
+            <aside class="w-full md:w-1/5 pr-4">
+              <nav class="bg-primary rounded-lg shadow-lg p-4">
+                <h2 class="text-white font-bold text-xl mb-4">Administración</h2>
+                <ul class="space-y-2">
+                  <li>
+                    <a 
+                      href="/admin" 
+                      class={`text-white flex items-center p-2 rounded-md transition-colors ${isActive('dashboard') ? 'bg-[#2a3a4f] font-medium' : 'hover:bg-[#2a3a4f] hover:text-secondary'}`}
+                    >
+                      <span class="mr-2">📊</span> Dashboard
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/admin/productos" 
+                      class={`text-white flex items-center p-2 rounded-md transition-colors ${isActive('productos') ? 'bg-[#2a3a4f] font-medium' : 'hover:bg-[#2a3a4f] hover:text-secondary'}`}
+                    >
+                      <span class="mr-2">📦</span> Productos
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/admin" 
+                      class={`text-white flex items-center justify-between p-2 rounded-md transition-colors ${isActive('pedidos') ? 'bg-[#2a3a4f] font-medium' : 'hover:bg-[#2a3a4f] hover:text-secondary'} min-h-[40px]`}
+                    >
+                      <div class="flex items-center">
+                        <span class="mr-2">🛒</span> Pedidos
+                      </div>
+                      <span class="text-xs bg-accent/80 text-white px-1.5 py-0.5 rounded whitespace-nowrap inline-block max-w-[60px] sm:max-w-[90px] text-center overflow-hidden text-ellipsis">Próx.</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/admin" 
+                      class={`text-white flex items-center justify-between p-2 rounded-md transition-colors ${isActive('clientes') ? 'bg-[#2a3a4f] font-medium' : 'hover:bg-[#2a3a4f] hover:text-secondary'} min-h-[40px]`}
+                    >
+                      <div class="flex items-center">
+                        <span class="mr-2">👥</span> Clientes
+                      </div>
+                      <span class="text-xs bg-accent/80 text-white px-1.5 py-0.5 rounded whitespace-nowrap inline-block max-w-[60px] sm:max-w-[90px] text-center overflow-hidden text-ellipsis">Próx.</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a 
+                      href="/admin" 
+                      class={`text-white flex items-center justify-between p-2 rounded-md transition-colors ${isActive('configuracion') ? 'bg-[#2a3a4f] font-medium' : 'hover:bg-[#2a3a4f] hover:text-secondary'} min-h-[40px]`}
+                    >
+                      <div class="flex items-center">
+                        <span class="mr-2">⚙️</span> Configuración
+                      </div>
+                      <span class="text-xs bg-accent/80 text-white px-1.5 py-0.5 rounded whitespace-nowrap inline-block max-w-[60px] sm:max-w-[90px] text-center overflow-hidden text-ellipsis">Próx.</span>
+                    </a>
+                  </li>
+                  <li>
+                    <button id="logout-btn" class="w-full text-left text-white hover:text-accent flex items-center p-2 rounded-md hover:bg-[#2a3a4f] transition-colors">
+                      <span class="mr-2">🚪</span> Cerrar sesión
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </aside>
+          )}
+          
+          <!-- Contenido principal con más espacio y mejor jerarquía visual -->
+          <div class={`w-full ${isAuth ? 'md:w-4/5' : 'md:w-full'}`}>
+            <div class="bg-white rounded-lg shadow-lg p-6">
+              <slot /></div>
+          </div>
+        </div>
+      </div>
+		</main>
+    
+    {isAuth && (
+      <script>
+        // Script para manejar el cierre de sesión
+        document.getElementById('logout-btn')?.addEventListener('click', async () => {
+          try {
+            const response = await fetch('/api/auth/logout', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (response.ok) {
+              window.location.href = '/admin/login';
+            } else {
+              console.error('Error al cerrar sesión');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+          }
+        });
+      </script>
+    )}
+	</body>
+</html>

@@ -1,0 +1,272 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro';
+import { getCollection, getEntry } from 'astro:content';
+import { isAuthenticated } from '../../../../utils/auth';
+
+// Verificar autenticación primero
+const isAuth = await isAuthenticated(Astro.request);
+if (!isAuth) {
+  console.log('Admin editar producto: Usuario no autenticado, redirigiendo a login');
+  return Astro.redirect('/admin/login');
+}
+
+// Obtener el ID del producto de los parámetros
+const { id } = Astro.params;
+
+// Intentar obtener el producto
+let producto = null;
+let error = null;
+
+try {
+  // Obtener el producto por ID
+  producto = await getEntry('productos', id);
+  
+  if (!producto) {
+    error = `No se encontró el producto con ID: ${id}`;
+  }
+} catch (e) {
+  console.error('Error al obtener el producto:', e);
+  error = `Error al obtener el producto: ${e.message}`;
+}
+---
+
+<AdminLayout title={producto ? `Editar: ${producto.data.nombre}` : 'Producto no encontrado'}>
+  <div class="admin-producto-editar">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold text-[#1E2A3C]">
+        {producto ? `Editar Producto: ${producto.data.nombre}` : 'Producto no encontrado'}
+      </h1>
+      <a href="/admin/productos" class="bg-[#1E2A3C] text-white px-4 py-2 rounded hover:bg-[#2a3a4f] transition-colors">
+        Volver a Productos
+      </a>
+    </div>
+    
+    {error ? (
+      <div class="bg-[#D42C17]/10 border border-[#D42C17] text-[#D42C17] p-4 rounded-lg mb-6">
+        <p>{error}</p>
+        <p class="mt-2">
+          <a href="/admin/productos" class="underline">Volver a la lista de productos</a>
+        </p>
+      </div>
+    ) : (
+      <form id="producto-form" class="space-y-6">
+        <input type="hidden" id="producto-id" value={producto.id} />
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Información básica -->
+          <div class="space-y-4">
+            <div>
+              <label for="nombre" class="block text-sm font-medium text-[#1E2A3C] mb-1">Nombre del Producto</label>
+              <input 
+                type="text" 
+                id="nombre" 
+                name="nombre" 
+                value={producto.data.nombre} 
+                required 
+                class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label for="descripcion" class="block text-sm font-medium text-[#1E2A3C] mb-1">Descripción</label>
+              <textarea 
+                id="descripcion" 
+                name="descripcion" 
+                rows="4" 
+                class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+              >{producto.data.descripcion}</textarea>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="precio" class="block text-sm font-medium text-[#1E2A3C] mb-1">Precio ($)</label>
+                <input 
+                  type="number" 
+                  id="precio" 
+                  name="precio" 
+                  value={producto.data.precio} 
+                  step="0.01" 
+                  min="0" 
+                  required 
+                  class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+                />
+              </div>
+              
+              <div>
+                <label for="stock" class="block text-sm font-medium text-[#1E2A3C] mb-1">Stock</label>
+                <input 
+                  type="number" 
+                  id="stock" 
+                  name="stock" 
+                  value={producto.data.stock} 
+                  min="0" 
+                  required 
+                  class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label for="categorias" class="block text-sm font-medium text-[#1E2A3C] mb-1">Categorías</label>
+              <input 
+                type="text" 
+                id="categorias" 
+                name="categorias" 
+                value={producto.data.categorias ? producto.data.categorias.join(', ') : ''} 
+                placeholder="Separadas por comas (ej: destacados, nuevos)" 
+                class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+              />
+              <p class="text-xs text-[#6c7983] mt-1">Separa las categorías con comas</p>
+            </div>
+          </div>
+          
+          <!-- Imágenes y características adicionales -->
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-[#1E2A3C] mb-1">Imágenes Actuales</label>
+              <div class="grid grid-cols-2 gap-4 mb-4">
+                {producto.data.imagenes && producto.data.imagenes.length > 0 ? (
+                  producto.data.imagenes.map((imagen, index) => (
+                    <div class="relative">
+                      <img 
+                        src={imagen} 
+                        alt={`${producto.data.nombre} - Imagen ${index + 1}`} 
+                        class="w-full h-32 object-cover rounded-md border border-[#EDEDED]"
+                      />
+                      <button 
+                        type="button" 
+                        data-index={index}
+                        class="btn-eliminar-imagen absolute top-2 right-2 bg-[#D42C17] text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-[#b52513] transition-colors"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                ) : (
+                  <div class="col-span-2 bg-[#EDEDED]/30 p-4 rounded-md text-center text-[#6c7983]">
+                    No hay imágenes disponibles
+                  </div>
+                )}
+              </div>
+              
+              <div>
+                <label for="nuevas-imagenes" class="block text-sm font-medium text-[#1E2A3C] mb-1">Añadir Nuevas Imágenes</label>
+                <input 
+                  type="file" 
+                  id="nuevas-imagenes" 
+                  name="nuevas-imagenes" 
+                  multiple 
+                  accept="image/*" 
+                  class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+                />
+                <p class="text-xs text-[#6c7983] mt-1">Puedes seleccionar múltiples imágenes</p>
+              </div>
+            </div>
+            
+            <div>
+              <label for="caracteristicas" class="block text-sm font-medium text-[#1E2A3C] mb-1">Características</label>
+              <textarea 
+                id="caracteristicas" 
+                name="caracteristicas" 
+                rows="4" 
+                placeholder="Una característica por línea" 
+                class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+              >{producto.data.caracteristicas ? producto.data.caracteristicas.join('\n') : ''}</textarea>
+              <p class="text-xs text-[#6c7983] mt-1">Escribe una característica por línea</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="pt-4 border-t border-[#EDEDED] flex justify-end space-x-4">
+          <a 
+            href="/admin/productos" 
+            class="px-6 py-2 border border-[#EDEDED] rounded-md text-[#6c7983] hover:bg-[#EDEDED]/50 transition-colors"
+          >
+            Cancelar
+          </a>
+          <button 
+            type="submit" 
+            class="px-6 py-2 bg-[#1E2A3C] text-white rounded-md hover:bg-[#2a3a4f] transition-colors"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+      </form>
+    )}
+  </div>
+</AdminLayout>
+
+<script>
+  // Script para manejar el formulario de edición
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('producto-form');
+    
+    // Manejar envío del formulario
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const productoId = (document.getElementById('producto-id') as HTMLInputElement).value;
+      const nombre = (document.getElementById('nombre') as HTMLInputElement).value;
+      const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement).value;
+      const precio = (document.getElementById('precio') as HTMLInputElement).value;
+      const stock = (document.getElementById('stock') as HTMLInputElement).value;
+      const categoriasInput = (document.getElementById('categorias') as HTMLInputElement).value;
+      const caracteristicasInput = (document.getElementById('caracteristicas') as HTMLTextAreaElement).value;
+      
+      // Procesar categorías (separadas por comas)
+      const categorias = categoriasInput
+        .split(',')
+        .map(cat => cat.trim())
+        .filter(cat => cat.length > 0);
+      
+      // Procesar características (una por línea)
+      const caracteristicas = caracteristicasInput
+        .split('\n')
+        .map(car => car.trim())
+        .filter(car => car.length > 0);
+      
+      // Construir objeto de producto actualizado
+      const productoActualizado = {
+        id: productoId,
+        nombre,
+        descripcion,
+        precio: parseFloat(precio),
+        stock: parseInt(stock),
+        categorias,
+        caracteristicas
+        // Nota: Las imágenes se manejarían en un entorno real con una carga de archivos
+      };
+      
+      try {
+        // Aquí iría la llamada a la API para actualizar el producto
+        console.log('Actualizando producto:', productoActualizado);
+        
+        // Simulación de actualización exitosa
+        alert('Producto actualizado con éxito');
+        
+        // Redirigir a la lista de productos
+        window.location.href = '/admin/productos';
+      } catch (error) {
+        console.error('Error al actualizar el producto:', error);
+        alert('Ocurrió un error al actualizar el producto. Por favor, inténtalo de nuevo.');
+      }
+    });
+    
+    // Manejar eliminación de imágenes
+    const botonesEliminarImagen = document.querySelectorAll('.btn-eliminar-imagen');
+    botonesEliminarImagen.forEach(boton => {
+      boton.addEventListener('click', (e) => {
+        const index = (e.currentTarget as HTMLButtonElement).dataset.index;
+        if (index === undefined) return;
+        
+        if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+          // En un entorno real, aquí se eliminaría la imagen
+          console.log(`Eliminando imagen en índice: ${index}`);
+          
+          // Simulación: Ocultar la imagen en la interfaz
+          (e.currentTarget as HTMLButtonElement).closest('.relative')?.remove();
+        }
+      });
+    });
+  });
+</script>

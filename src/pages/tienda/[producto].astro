@@ -1,0 +1,233 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE } from '../../consts';
+import { getCollection } from 'astro:content';
+
+// Generar rutas dinámicas para cada producto
+export async function getStaticPaths() {
+  const productos = await getCollection('productos');
+  
+  // Si no hay productos, crear una ruta de ejemplo
+  if (productos.length === 0) {
+    return [{
+      params: { producto: 'producto-ejemplo' },
+      props: { 
+        nombre: 'Producto de ejemplo',
+        precio: 29.99,
+        descripcion: 'Este es un producto de ejemplo para mostrar la estructura de datos.',
+        imagenes: ['/blog-placeholder-1.jpg'],
+        stock: 10,
+        categorias: ['destacados', 'nuevos']
+      }
+    }];
+  }
+  
+  return productos.map(producto => ({
+    params: { producto: producto.id },
+    props: producto.data
+  }));
+}
+
+// Obtener propiedades del producto
+const { producto } = Astro.params;
+const { nombre, precio, descripcion, imagenes, stock, categorias } = Astro.props;
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`${nombre} | ${SITE_TITLE}`} description={descripcion} />
+    <link rel="stylesheet" href="/styles/main.css" />
+	</head>
+	<body>
+		<Header />
+		<main>
+      <div class="container">
+        <section class="section producto-detalle">
+          <div class="producto-grid">
+            <div class="producto-imagenes">
+              <div class="imagen-principal">
+                <img src={imagenes[0]} alt={nombre} />
+              </div>
+              
+              {imagenes.length > 1 && (
+                <div class="imagenes-adicionales">
+                  {imagenes.slice(1).map((imagen) => (
+                    <div class="imagen-thumbnail">
+                      <img src={imagen} alt={nombre} />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            <div class="producto-info">
+              <h1>{nombre}</h1>
+              <p class="precio">${precio.toFixed(2)}</p>
+              
+              {stock > 0 ? (
+                <p class="stock disponible">En stock: {stock} unidades</p>
+              ) : (
+                <p class="stock agotado">Agotado</p>
+              )}
+              
+              <div class="descripcion">
+                <h2>Descripción</h2>
+                <p>{descripcion}</p>
+              </div>
+              
+              {categorias && categorias.length > 0 && (
+                <div class="categorias">
+                  <h3>Categorías:</h3>
+                  <div class="tags">
+                    {categorias.map(categoria => (
+                      <span class="tag">{categoria}</span>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <div class="acciones">
+                <button class="btn btn-primary agregar-carrito" disabled={stock <= 0}>
+                  Agregar al carrito
+                </button>
+                <button class="btn btn-outline comprar-ahora" disabled={stock <= 0}>
+                  Comprar ahora
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+		</main>
+		<Footer />
+	</body>
+</html>
+
+<style lang="scss">
+  // Importar variables y mixins de Sass
+  @import '../../styles/sass/main.scss';
+  
+  .producto-detalle {
+    padding: 2rem 0;
+  }
+  
+  .producto-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    
+    @media (min-width: 768px) {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+  
+  .producto-imagenes {
+    .imagen-principal {
+      margin-bottom: 1rem;
+      
+      img {
+        width: 100%;
+        height: auto;
+        border-radius: 0.5rem;
+        object-fit: cover;
+      }
+    }
+    
+    .imagenes-adicionales {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      
+      .imagen-thumbnail {
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+        
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          border-radius: 0.25rem;
+          cursor: pointer;
+          
+          &:hover {
+            opacity: 0.8;
+          }
+        }
+      }
+    }
+  }
+  
+  .producto-info {
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .precio {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+    }
+    
+    .stock {
+      margin-bottom: 1.5rem;
+      
+      &.disponible {
+        color: green;
+      }
+      
+      &.agotado {
+        color: red;
+      }
+    }
+    
+    .descripcion {
+      margin-bottom: 1.5rem;
+      
+      h2 {
+        font-size: 1.2rem;
+        margin-bottom: 0.5rem;
+      }
+    }
+    
+    .categorias {
+      margin-bottom: 1.5rem;
+      
+      h3 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+      }
+      
+      .tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        
+        .tag {
+          background-color: #f0f0f0;
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem;
+          font-size: 0.875rem;
+        }
+      }
+    }
+    
+    .acciones {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      
+      button {
+        flex: 1;
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+</style>

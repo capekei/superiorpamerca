@@ -1,0 +1,130 @@
+---
+import BaseHead from '../../components/BaseHead.astro';
+import Header from '../../components/Header.astro';
+import Footer from '../../components/Footer.astro';
+import { SITE_TITLE, SITE_DESCRIPTION } from '../../consts';
+import { isAuthenticated } from '../../utils/auth';
+
+console.log('Login: Verificando si el usuario ya está autenticado');
+
+// Verificar si el usuario ya está autenticado
+let userIsAuthenticated = false;
+try {
+  userIsAuthenticated = await isAuthenticated(Astro.request);
+  
+  // Si ya está autenticado, redirigir al panel de administración
+  if (userIsAuthenticated) {
+    console.log('Login: Usuario ya autenticado, redirigiendo a /admin');
+    return Astro.redirect('/admin');
+  }
+  
+  console.log('Login: Usuario no autenticado, mostrando formulario de login');
+} catch (error) {
+  console.error('Login: Error al verificar autenticación:', error);
+  // No redirigimos en caso de error, simplemente mostramos el formulario de login
+}
+---
+
+<html lang="es">
+	<head>
+		<BaseHead title={`Iniciar Sesión | ${SITE_TITLE}`} description={SITE_DESCRIPTION} />
+	</head>
+	<body class="min-h-screen flex flex-col bg-white">
+		<Header />
+		<main class="flex-grow flex items-center justify-center">
+      <div class="container mx-auto px-4 py-8">
+        <div class="max-w-md mx-auto">
+          <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-2xl font-bold text-primary mb-6 text-center">Acceso al Panel de Administración</h1>
+            <p class="text-gray-600 mb-8 text-center">Por favor, inicia sesión para acceder al panel de administración.</p>
+            
+            <form id="login-form" class="space-y-6">
+              <div class="space-y-2">
+                <label for="email" class="block text-sm font-medium text-gray-700">Usuario o Email</label>
+                <input 
+                  type="text" 
+                  id="email" 
+                  name="email" 
+                  required 
+                  class="w-full px-4 py-2 border border-secondary rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                />
+              </div>
+              
+              <div class="space-y-2">
+                <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password" 
+                  required 
+                  class="w-full px-4 py-2 border border-secondary rounded-md focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                />
+              </div>
+              
+              <div id="error-message" class="text-accent text-sm hidden"></div>
+              
+              <button 
+                type="submit" 
+                class="w-full bg-primary text-white font-medium py-2 px-4 rounded-md hover:bg-[#2a3a4f] focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
+              >
+                Iniciar sesión
+              </button>
+            </form>
+            
+            <div class="mt-6 text-sm text-center">
+              <p class="text-gray-600">
+                ¿Olvidaste tu contraseña? Contacta al administrador del sistema.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+		</main>
+		<Footer />
+    
+    <script>
+      // Script para manejar el inicio de sesión
+      document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const emailInput = document.getElementById('email') as HTMLInputElement;
+        const passwordInput = document.getElementById('password') as HTMLInputElement;
+        const errorMessage = document.getElementById('error-message');
+        
+        if (!emailInput || !passwordInput || !errorMessage) return;
+        
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        
+        try {
+          // Ocultar mensaje de error previo
+          errorMessage.classList.add('hidden');
+          
+          // Enviar solicitud de inicio de sesión
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ email, password })
+          });
+          
+          const data = await response.json();
+          
+          if (response.ok && data.success) {
+            // Redirigir al panel de administración
+            window.location.href = '/admin';
+          } else {
+            // Mostrar mensaje de error
+            errorMessage.textContent = data.message || 'Error al iniciar sesión';
+            errorMessage.classList.remove('hidden');
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          errorMessage.textContent = 'Error de conexión. Inténtalo de nuevo.';
+          errorMessage.classList.remove('hidden');
+        }
+      });
+    </script>
+	</body>
+</html>

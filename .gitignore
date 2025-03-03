@@ -26,3 +26,11 @@ pnpm-debug.log*
 # wrangler files
 .wrangler
 .dev.vars
+
+# backup files
+*.bak
+*.bak.*
+*.backup
+*.old
+*~
+src/pages/admin/productos/backups/

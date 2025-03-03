@@ -1,0 +1,154 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { isAuthenticated } from '../../utils/auth';
+import { handleNotFoundPage, getBrokenLinksSummary } from '../../utils/linkMonitor';
+
+// Verificar autenticación primero
+const isAuth = await isAuthenticated(Astro.request);
+if (!isAuth) {
+  console.log('Admin 404: Usuario no autenticado, redirigiendo a login');
+  return Astro.redirect('/admin/login');
+}
+
+// Manejar la página no encontrada
+const { redirect } = handleNotFoundPage(Astro.request);
+
+// Si hay una redirección configurada, redirigir al usuario
+if (redirect) {
+  return Astro.redirect(redirect);
+}
+
+// URL actual
+const currentUrl = new URL(Astro.request.url).pathname;
+
+// Obtener páginas comunes para sugerir
+const commonPages = [
+  { url: '/admin/productos', name: 'Gestión de Productos' },
+  { url: '/admin/productos/nuevo', name: 'Añadir Nuevo Producto' },
+  { url: '/admin', name: 'Dashboard' },
+];
+
+// Determinar la página de referencia
+const referrer = Astro.request.headers.get('referer') || '';
+---
+
+<AdminLayout title="Página no encontrada">
+  <div class="error-404-container p-8">
+    <div class="bg-white rounded-lg shadow-md p-8 max-w-3xl mx-auto">
+      <div class="text-center mb-8">
+        <div class="text-[#D42C17] text-7xl font-bold mb-4">404</div>
+        <h1 class="text-2xl font-bold text-[#1E2A3C] mb-2">Página no encontrada</h1>
+        <p class="text-[#6c7983]">La página que estás buscando no existe o ha sido movida.</p>
+      </div>
+      
+      <div class="border-t border-b border-[#EDEDED] py-6 my-6">
+        <div class="mb-4">
+          <h2 class="text-lg font-semibold text-[#1E2A3C] mb-2">Detalles del error:</h2>
+          <div class="bg-[#EDEDED]/50 p-4 rounded-md">
+            <p class="font-mono text-sm break-all">URL: {currentUrl}</p>
+            {referrer && (
+              <p class="font-mono text-sm break-all mt-2">Referencia: {referrer}</p>
+            )}
+          </div>
+        </div>
+        
+        <div>
+          <h2 class="text-lg font-semibold text-[#1E2A3C] mb-2">¿Qué puede haber ocurrido?</h2>
+          <ul class="list-disc pl-5 text-[#6c7983] space-y-1">
+            <li>La página que buscas puede haber sido eliminada o movida</li>
+            <li>Puede haber un error en la URL que ingresaste</li>
+            <li>Es posible que esta funcionalidad aún no esté implementada</li>
+          </ul>
+        </div>
+      </div>
+      
+      <div class="mb-8">
+        <h2 class="text-lg font-semibold text-[#1E2A3C] mb-4">Páginas sugeridas:</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {commonPages.map(page => (
+            <a 
+              href={page.url} 
+              class="flex items-center p-4 border border-[#EDEDED] rounded-md hover:bg-[#EDEDED]/20 transition-colors"
+            >
+              <span class="text-[#1E2A3C]">{page.name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+      
+      <div class="flex justify-between items-center">
+        <a 
+          href="javascript:history.back()" 
+          class="px-4 py-2 border border-[#EDEDED] rounded-md text-[#6c7983] hover:bg-[#EDEDED]/50 transition-colors"
+        >
+          Volver atrás
+        </a>
+        <a 
+          href="/admin" 
+          class="px-4 py-2 bg-[#1E2A3C] text-white rounded-md hover:bg-[#2a3a4f] transition-colors"
+        >
+          Ir al Dashboard
+        </a>
+      </div>
+    </div>
+    
+    <!-- Formulario de reporte de error (visible solo para administradores) -->
+    <div class="mt-8 bg-white rounded-lg shadow-md p-6 max-w-3xl mx-auto">
+      <h2 class="text-lg font-semibold text-[#1E2A3C] mb-4">Reportar este problema</h2>
+      <form id="report-form" class="space-y-4">
+        <div>
+          <label for="description" class="block text-sm font-medium text-[#1E2A3C] mb-1">Descripción del problema</label>
+          <textarea 
+            id="description" 
+            name="description" 
+            rows="3" 
+            placeholder="Describe qué estabas intentando hacer cuando encontraste este error..."
+            class="w-full px-4 py-2 border border-[#EDEDED] rounded-md focus:ring-2 focus:ring-[#1E2A3C] focus:border-[#1E2A3C] transition-colors"
+          ></textarea>
+        </div>
+        
+        <div class="flex justify-end">
+          <button 
+            type="submit" 
+            class="px-4 py-2 bg-[#1E2A3C] text-white rounded-md hover:bg-[#2a3a4f] transition-colors"
+          >
+            Enviar reporte
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Manejar el formulario de reporte
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('report-form');
+    
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const description = (document.getElementById('description') as HTMLTextAreaElement).value;
+      const currentUrl = window.location.pathname;
+      const referrer = document.referrer;
+      
+      // Construir el objeto de reporte
+      const report = {
+        url: currentUrl,
+        referrer,
+        description,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent
+      };
+      
+      // En producción, aquí se enviaría el reporte a un endpoint
+      console.log('Enviando reporte de error 404:', report);
+      
+      // Mostrar confirmación
+      alert('Gracias por reportar este problema. Lo revisaremos lo antes posible.');
+      
+      // Limpiar el formulario
+      (document.getElementById('description') as HTMLTextAreaElement).value = '';
+    });
+  });
+</script>
